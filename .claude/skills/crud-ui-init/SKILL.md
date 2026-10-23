@@ -10,6 +10,10 @@ themselves are built by the `crud-resource` skill, one resource at a time. Conve
 `docs/API-CONTRACT.md`.
 
 ## 1. Ask (one message, all at once)
+If the API was started from `docs/API-KICKSTART.md`, its README has a "Connect a UI" section with the `.env.local`
+values (OIDC, roles claim, proxy target, contract source, e2e users) and the role names: read it (ask for its path)
+and ask only for the rest (app name, languages, role labels).
+
 - **App name** (header, browser tab, page titles).
 - **Languages**, default first (`pl`, `en` have locale files; another needs `src/locales/<lang>/` copied from `en`
   and translated, plus a line in `src/i18n/resources.ts`).
@@ -38,8 +42,8 @@ Ask what is missing; never guess a URL, role or realm.
 ## 3. Contract
 - [ ] `npm run contract:pull && npm run api:generate`; commit `contract/openapi.json` with `src/api/generated/`.
 - [ ] Run the `contract-auditor` agent for all tags. If any resource is not compliant, **stop**: give the user the
-      auditor's API changes as a prompt for the API team (`docs/API-CONTRACT.md`, and `docs/API-CLAUDE.md` for a
-      Spring Boot API). Resources that are compliant may go on if the user says so.
+      auditor's API changes as a prompt for the API team (`docs/API-CONTRACT.md`; a Spring Boot API started
+      without the kickstart can adopt `docs/API-CLAUDE.md` as its `CLAUDE.md`). Resources that are compliant may go on if the user says so.
 
 ## 4. Manifest draft for all resources
 - [ ] One `resources.<key>` entry per tag, with the keys of `.claude/skills/crud-resource/references/examples/`:

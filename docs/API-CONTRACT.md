@@ -115,7 +115,8 @@ New codes (`not-found`, `in-use`, `date-range`) are added to the `FieldError.cod
 
 ## 10. Spring Boot backends
 How the reference API (`spring-person-api-claude`, Spring Boot 4, Spring Data 4, springdoc 3) meets these rules. A
-ready-to-paste `CLAUDE.md` block with them is [API-CLAUDE.md](API-CLAUDE.md). Pitfalls met so far, each one cost a
+`CLAUDE.md` template with them is [API-CLAUDE.md](API-CLAUDE.md), and [API-KICKSTART.md](API-KICKSTART.md) starts a new
+API from it. Pitfalls met so far, each one cost a
 contract or UI fix:
 
 - **Paged lists:** annotate `Pageable` with springdoc's `@ParameterObject`, or the contract shows one `pageable`

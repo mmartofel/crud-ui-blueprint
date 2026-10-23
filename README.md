@@ -20,8 +20,8 @@ Hook Form + Zod, orval, i18next, Vitest + Testing Library, Playwright.
 
 ## Prerequisites
 - Node.js 24+ and npm 11+, [Claude Code](https://claude.com/claude-code), the GitHub CLI (`gh`).
-- An API whose contract passes the `contract-auditor` (rules in `docs/API-CONTRACT.md`; for Spring Boot, paste
-  `docs/API-CLAUDE.md` into the API's `CLAUDE.md`).
+- An API whose contract passes the `contract-auditor` (rules in `docs/API-CONTRACT.md`). A new Spring Boot API
+  starts from `docs/API-KICKSTART.md`: two files to copy and one prompt.
 - An OIDC provider with a public client: Authorization Code + PKCE, redirect URI `http://localhost:5173/*`, one read
   role and one write role in an access token claim (`VITE_OIDC_ROLES_CLAIM`, default Keycloak's `realm_access.roles`),
   and two users for the e2e tests. Tested with Keycloak; the e2e login helper fills Keycloak's login form, so another
@@ -40,6 +40,34 @@ claude                            # then: "init the project" (crud-ui-init skill
 `crud-ui-init` asks for the app name, languages, contract source, OIDC settings and roles, writes `.env.local` and the
 manifest, and builds every resource with `crud-resource`. To do it by hand: copy `.env.example` to `.env.local`,
 fill it in, set `app` in `ui-manifest.yaml`, and follow the method below.
+
+## Start a new API (kickstart)
+No API yet? Start a Spring Boot API that already follows the contract, from an empty directory and one prompt
+([docs/API-KICKSTART.md](docs/API-KICKSTART.md)):
+
+```bash
+mkdir library-api && cd library-api && git init
+mkdir docs
+cp ../crud-ui-blueprint/docs/API-CONTRACT.md docs/API-CONTRACT.md   # the rules, never edited in the API repo
+cp ../crud-ui-blueprint/docs/API-CLAUDE.md CLAUDE.md                # the API's CLAUDE.md template, as is
+claude                                                              # paste the prompt from docs/API-KICKSTART.md
+```
+
+1. Make the `spring-boot-template` Claude Code plugin available in the API repo (its skills and agents are named in
+   the template).
+2. Paste the prompt from `docs/API-KICKSTART.md` and replace its last paragraph with your domain (resources, fields,
+   relations, filters).
+3. Answer its one round of questions (groupId, realm, field details) and approve the plan. It builds the skeleton
+   (Maven, Docker Compose with PostgreSQL and Keycloak, `k8s/realm.json`, CircleCI), the shared classes modelled on
+   [`spring-person-api-claude`](https://github.com/mmartofel/spring-person-api-claude), and then each resource with
+   tests, and exports `contract/openapi.json`.
+4. It finishes when `mvn clean verify` passes, the API was smoke-tested, and the README has a "Connect a UI" section
+   with the `.env.local` lines for this UI. Commit, push and enable CircleCI for the new repository.
+5. Create the UI (above) and run `crud-ui-init`: it takes the OIDC, proxy, contract and e2e values from that section
+   and asks only for the app name, languages and role labels.
+
+Keycloak is set up the same way for every API (realm roles `<realm>-viewer` and `<realm>-editor`, public client
+`<realm>-ui`, demo users `viewer` and `editor`), so the UI needs no adaptation.
 
 ## The method in 6 steps
 1. **Configure** (`crud-ui-init`): app name and languages in `ui-manifest.yaml`, OIDC, API proxy, contract source and
@@ -84,7 +112,7 @@ Without `.env.local` the app stops with a console error naming the missing `VITE
   before your first resource exists.
 - `.claude/skills/crud-ui-init`, `.claude/skills/crud-resource` (with `references/wiring.md` and `references/examples/`),
   `.claude/agents/contract-auditor.md`, `.claude/agents/ui-reviewer.md`, `.claude/hooks/typecheck.sh`.
-- `docs/API-CONTRACT.md` (for API teams), `docs/API-CLAUDE.md` (Spring Boot), `docs/PATTERNS.md` (lessons).
+- `docs/API-CONTRACT.md` (for API teams), `docs/API-KICKSTART.md` and `docs/API-CLAUDE.md` (new Spring Boot API), `docs/PATTERNS.md` (lessons).
 
 ## CI
 CircleCI (`.circleci/config.yml`) runs typecheck, lint, unit tests, build and `contract:check` on every push. Enable

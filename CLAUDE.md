@@ -56,7 +56,8 @@ src/features/<resource>/     # one folder per resource: list, detail, form, rout
 src/test/fixtures/           # persons/tasks manifest, schemas and labels for unit tests of the generic code (not used by the app)
 e2e/                         # Playwright tests (shell.spec.ts; one spec per resource)
 docs/API-CONTRACT.md         # contract rules the API must follow (checked by the contract-auditor agent); hand it to API teams
-docs/API-CLAUDE.md           # ready-to-paste CLAUDE.md block for a Spring Boot API that serves this UI
+docs/API-CLAUDE.md           # CLAUDE.md template for a new Spring Boot API that serves this UI (copied as is)
+docs/API-KICKSTART.md        # how to start that API: files to copy and the first-session prompt
 docs/PATTERNS.md             # how the method was built, lessons, what the manifest can and cannot express
 .claude/skills/crud-ui-init/   # skill: set up a new project (config, contract, manifest draft, all resources)
 .claude/skills/crud-resource/  # skill: add or update a resource; references/wiring.md is the file-by-file guide,
@@ -73,6 +74,24 @@ In dev, Vite proxies `/api` to `API_PROXY_TARGET`.
 - After the API fix: `npm run contract:pull && npm run api:generate` even when only the version changed (the
   generated headers carry it, and `contract:check` compares with the commit), re-run the reproduction, turn the parked
   test into a regression test, run `npm run e2e`, and move the PATTERNS entry from open to fixed.
+
+## Starting a new API (kickstart)
+A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never hand an API team a partial block.
+- The API repo gets exactly two files from here, copied unchanged: `docs/API-CONTRACT.md` and `docs/API-CLAUDE.md`
+  (as its `CLAUDE.md`). Then the prompt in `docs/API-KICKSTART.md` is pasted into its first session; that session
+  fills the template's Project section itself.
+- Keycloak is fixed, not configurable: realm `<realm>`, realm roles `<realm>-viewer` / `<realm>-editor` in
+  `realm_access.roles`, public client `<realm>-ui` (PKCE S256, redirect `http://localhost:5173/*`), service account
+  client `<realm>-api`, users `viewer` / `editor`, i18n `en` + `pl`; Keycloak 8080, API 8081, PostgreSQL 5432.
+- The kickstart ends with a README "Connect a UI" section holding the `.env.local` lines; `crud-ui-init` reads it
+  instead of asking. Keep that list in step with `.env.example` when a variable is added.
+- The three API docs move together: a new contract rule goes into `docs/API-CONTRACT.md` and, when it changes how a
+  Spring Boot API implements it, into `docs/API-CLAUDE.md` (and the kickstart prompt if it changes the build order);
+  a new check also goes into `.claude/agents/contract-auditor.md`. A pitfall a new API met goes into
+  `docs/API-CONTRACT.md` section 10 and `docs/API-CLAUDE.md` in the same session.
+- `docs/API-CLAUDE.md` stays generic: placeholders (`<project>`, `<groupId>`, `<realm>`, `<Resource>`) and the
+  Order/Customer examples only; no names from the reference API except in `docs/API-KICKSTART.md`, which pins it
+  (`spring-person-api-claude`, commit `f98300e`) as the model for the shared classes.
 
 ## UI conventions
 - Every screen text goes through i18n. Keys: `common.*`, `<resource>.title`, `<resource>.fields.<field>`
