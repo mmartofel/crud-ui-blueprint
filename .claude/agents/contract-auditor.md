@@ -44,6 +44,9 @@ Work from `contract/openapi.json` with `jq`. For the tag, find its operations an
 10. **Filters and relations** (section 9, only when used): filters are named, typed query params next to `q`; relations are
     `<relation>Id` in requests and `<relation>: { id, label }` (both required) in responses; `FieldError.code`
     contains `not-found` / `in-use` / cross-field codes when the API relies on them.
+11. **Required text**: every `type: string` property listed in a request schema's `required` (create and update) has
+    `minLength` of at least 1 (section 3). `minLength: 0` on a required field is a violation: in Spring Boot it comes
+    from `@Size(max)` next to `@NotBlank` (section 10).
 
 When the caller asks about a contract change, also run `git diff contract/openapi.json` (or against the last commit
 that touched it: `git log -n 2 --format=%h -- contract/openapi.json`) and list what changed per resource.

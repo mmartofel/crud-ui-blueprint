@@ -36,6 +36,8 @@ Examples use a resource `Person` (tag `Persons`, path `/api/persons`). Replace i
 - **Validation constraints are in the schema** (`required`, `minLength`, `maxLength`, `minimum`, `maximum`, `format`,
   `pattern`, `enum`), because the UI generates its Zod validation from them. A rule that cannot be expressed in the
   schema (such as "date in the past") must still return a field error with a documented `code` (section 5).
+- **A required text field has `minLength` of at least 1** in requests. With `minLength: 0` the UI accepts an empty
+  value and only the server rejects it.
 - **`pattern` must be valid JavaScript regex** (the UI compiles it with `new RegExp`). No Java-only syntax: inline
   flags such as `(?s)` or `(?i)`, possessive quantifiers (`a++`, `a*+`), atomic groups `(?>…)`, `\A`, `\Z`, `\z`,
   `\p{javaLowerCase}`.
@@ -126,6 +128,9 @@ contract or UI fix:
   filter (rule 9).
 - **No Java-only regex:** `@Pattern` goes into the contract unchanged and the UI compiles it as a JavaScript regex.
   `(?s)`, possessive quantifiers or `\p{...}` classes break the generated Zod schemas at import time.
+- **Required text fields:** `@NotBlank` alone becomes `minLength: 1`, but `@Size(max = N)` next to it overwrites that
+  with `0` (and `@Schema(minLength = 1)` does not win). Use `@NotBlank @Size(min = 1, max = N)`; an empty value then
+  breaks both constraints, so the exception handler reports only `required` for a field that has it.
 - **`errors[].code`:** map each constraint's simple name (`FieldError#getCode()`) to a documented code in one
   exception handler, and list the codes as the `FieldError.code` enum. The UI translates codes, never `message`.
 - **Error responses in the contract:** any `@ApiResponse` on a controller method stops springdoc 3 from generating the

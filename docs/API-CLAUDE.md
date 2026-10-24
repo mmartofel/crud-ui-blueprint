@@ -137,6 +137,9 @@ The UI logs in against this realm, so its shape is fixed:
   needs a `@MockitoBean` in that controller's test.
 - `@NotBlank` appears in the contract only as `minLength: 1`, so a whitespace-only value passes client-side
   validation and is rejected by the server with a field error.
+- `@Size(max = N)` next to `@NotBlank` overwrites that `minLength: 1` with `0` (and `@Schema(minLength = 1)` does not
+  win), so required text fields use `@NotBlank @Size(min = 1, max = N)`. An empty value then breaks both constraints;
+  `ApiExceptionHandler` keeps only `required` for a field that has it. Assert `minLength: 1` in `exportOpenApiContract`.
 - Integration tests use Testcontainers. With Podman set `DOCKER_HOST` to the Podman socket and
   `TESTCONTAINERS_RYUK_DISABLED=true` (see README). Without Docker/Podman they are skipped, and the contract is not
   regenerated.
