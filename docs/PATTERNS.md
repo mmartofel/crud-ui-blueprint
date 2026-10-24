@@ -175,6 +175,8 @@ Everything else is generic and driven by the manifest. These are the only person
 | 9b | Reviewer: a long free-text title in the link column pushed every other column out of view | the link column wraps (`min-w-48 max-w-96`) |
 | 9b | An API bug found by the UI review: the fix had to come from the API repo, but the UI still had to follow it | flow in CLAUDE.md "API contract": reproduce, prompt for the API repo, `test.fixme`; after the fix pull + regenerate (version-only), regression test |
 | 9b | **API bug:** `PUT /api/tasks/{id}` with a new `assigneeId` committed and then answered 500 (lazy `assignee` read after the transaction, `open-in-view: false`), so the next save met the stale-version dialog | fixed in the API repo (3.4.1, which also returns Problem Details for unexpected errors); the UI only regenerated the client. The e2e test changes the assignee and saves again |
+| Library | On an author's page, every book in the related list repeated the author's name: the related list showed all `mobile: subtitle` columns, including the relation back to the record being shown | `relatedSubtitleFields` (`components/app/relatedFields.ts`, unit-tested) leaves out a relation column whose `resource` is the parent |
+| Library | E2E: a relation input labelled "Author" and its picker's search box, labelled "Authors", both matched `getByRole('combobox', { name: 'Author' })` while the picker was closing | wait for `getByRole('dialog')` to be hidden before asserting the input (`references/wiring.md`, Tests) |
 
 `tasks/lessons.md` has no entries: there were no user corrections. The decisions the user made are in the table
 above and in the git log.
