@@ -22,8 +22,8 @@ Each folder has:
 The `src/api/sources.ts` lines were:
 
 ```ts
-persons: { list: listPersons, get: getPerson, listKey: getListPersonsQueryKey },
-tasks: { list: listTasks, get: getTask, listKey: getListTasksQueryKey },
+persons: { list: listPersons, get: getPerson, listKey: getListPersonsQueryKey, getKey: getGetPersonQueryKey },
+tasks: { list: listTasks, get: getTask, listKey: getListTasksQueryKey, getKey: getGetTaskQueryKey },
 ```
 
 and the routes in `src/router.tsx`: `...personsRoutes, ...tasksRoutes,` before the `*` route.

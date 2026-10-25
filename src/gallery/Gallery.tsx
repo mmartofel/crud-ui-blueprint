@@ -39,8 +39,11 @@ function fakeAuth(role: GalleryRole): AuthContextProps {
   } as unknown as AuthContextProps
 }
 
-// One route: every link (nav, rows, "Back to list") stays on the gallery page inside the real app shell.
-const router = createMemoryRouter([{ element: <AppShell />, children: [{ path: '*', element: <GalleryPage /> }] }])
+// One route: every link (nav, rows, breadcrumbs, "Back to list") stays on the gallery page inside the real app
+// shell. It starts on the persons list, so the header shows its breadcrumb; a row link shows list › record.
+const router = createMemoryRouter([{ element: <AppShell />, children: [{ path: '*', element: <GalleryPage /> }] }], {
+  initialEntries: ['/persons'],
+})
 
 export function Gallery() {
   const [role, setRole] = useState<GalleryRole>('writer')

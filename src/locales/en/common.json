@@ -3,13 +3,17 @@
   "nav": {
     "label": "Main navigation",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "expand": "Expand navigation",
+    "collapse": "Collapse navigation",
+    "toggle": "Toggle navigation",
+    "shortcut": "Shortcut: {{keys}}",
+    "breadcrumb": "Breadcrumb"
   },
   "language": {
     "label": "Language",
     "pl": "Polski",
-    "en": "English",
-    "trigger": "{{code}} – language: {{name}}"
+    "en": "English"
   },
   "theme": {
     "label": "Theme",

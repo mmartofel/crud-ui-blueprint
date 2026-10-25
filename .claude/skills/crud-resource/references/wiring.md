@@ -36,11 +36,13 @@ no `\b` and skips them silently; use `perl -pe 's/\bPersonDetail\b/OrderDetail/g
 
 ## Registration (one line each)
 - `src/manifest/index.ts`: add the key to `ResourceKey`.
-- `src/api/sources.ts`: `<key>: { list, get, listKey }` from the generated client (relations, related lists).
+- `src/api/sources.ts`: `<key>: { list, get, listKey, getKey }` from the generated client (relations, related lists,
+  breadcrumbs).
 - `src/manifest/icons.ts`: add a new lucide icon name used by `nav.icon`.
 - `src/i18n/resources.ts`: import `src/locales/{pl,en}/<key>.json` and add it to both languages.
 - `src/router.tsx`: spread `<key>Routes` into the root children before the `*` route.
-- Navigation needs no change: `AppNav` lists every manifest resource the user can read.
+- Navigation and breadcrumbs need no change: `AppNav` lists every manifest resource the user can read, and
+  `AppBreadcrumbs` names records by `display` through the `sources` line (`getKey`).
 
 ## Shared pieces (use, do not copy)
 

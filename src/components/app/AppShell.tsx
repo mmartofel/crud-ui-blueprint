@@ -1,76 +1,105 @@
 import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, Outlet } from 'react-router'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { AppNav } from './AppNav'
+import { Outlet, useLocation } from 'react-router'
+import { Separator } from '@/components/ui/separator'
+import { isMac, SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
+import { resources } from '@/manifest'
+import { AppBreadcrumbs } from './AppBreadcrumbs'
+import { AppSidebar } from './AppSidebar'
 import { ErrorBoundary } from './ErrorBoundary'
-import { LanguageSwitcher } from './LanguageSwitcher'
-import { ThemeToggle } from './ThemeToggle'
-import { UserMenu } from './UserMenu'
-import { app } from '@/manifest'
+import { resourcePage, type PageKind } from './resourcePage'
 
-/** Header plus navigation: a sidebar from `lg`, a sheet menu below it. */
+// The desktop sidebar's expanded/collapsed state, remembered like the theme and the language.
+const SIDEBAR_STORAGE_KEY = 'sidebar'
+
+function storedOpen(): boolean {
+  try {
+    return localStorage.getItem(SIDEBAR_STORAGE_KEY) !== 'collapsed'
+  } catch {
+    return true
+  }
+}
+
+function storeOpen(open: boolean) {
+  try {
+    localStorage.setItem(SIDEBAR_STORAGE_KEY, open ? 'expanded' : 'collapsed')
+  } catch {
+    // Ignore: the state is then not remembered.
+  }
+}
+
+// Content width on very wide screens: lists use the room, a record reads better narrower, a form narrower still.
+const contentWidth: Record<PageKind | 'other', string> = {
+  list: 'max-w-7xl',
+  other: 'max-w-7xl',
+  detail: 'max-w-6xl',
+  new: 'max-w-4xl',
+  edit: 'max-w-4xl',
+}
+
+/**
+ * Opens the sheet below `lg` ("Open menu", with aria-expanded); from `lg` collapses the sidebar to icons, its label
+ * naming the action ("Collapse/Expand navigation"; Ctrl/⌘+B in the tooltip). 44 px up to `lg`, where it opens the sheet.
+ */
+function NavTrigger() {
+  const { t } = useTranslation()
+  const { isMobile, open, openMobile } = useSidebar()
+  if (isMobile) {
+    return <SidebarTrigger className="md:size-11" aria-label={t('common.nav.openMenu')} aria-expanded={openMobile} />
+  }
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <SidebarTrigger aria-label={open ? t('common.nav.collapse') : t('common.nav.expand')} />
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{t('common.nav.shortcut', { keys: isMac ? '⌘B' : 'Ctrl+B' })}</TooltipContent>
+    </Tooltip>
+  )
+}
+
+/** Sidebar (navigation, user menu) plus a header with breadcrumbs and the page. */
 export function AppShell() {
   const { t } = useTranslation()
-  const [menuOpen, setMenuOpen] = useState(false)
+  const { pathname } = useLocation()
+  const [open, setOpen] = useState(storedOpen)
+  const page = resourcePage(pathname, resources)
+
+  const onOpenChange = (value: boolean) => {
+    setOpen(value)
+    storeOpen(value)
+  }
 
   return (
-    <div className="min-h-svh">
+    <SidebarProvider open={open} onOpenChange={onOpenChange}>
       <a
         href="#main"
-        className="sr-only z-50 rounded-md bg-background px-4 py-2 focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:ring-[3px] focus:ring-ring"
+        className="sr-only z-50 rounded-md bg-popover text-popover-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:shadow-md focus:ring-[3px] focus:ring-ring focus:outline-none"
       >
         {t('common.skipToContent')}
       </a>
 
-      <header className="sticky top-0 z-40 flex h-14 items-center gap-1 border-b bg-background px-2 sm:px-4">
-        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t('common.nav.openMenu')}>
-              <Menu aria-hidden />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72 gap-0 p-0" showCloseButton={false} aria-describedby={undefined}>
-            <SheetHeader className="flex-row items-center justify-between border-b px-4 py-2">
-              <SheetTitle>{t('common.nav.label')}</SheetTitle>
-              <SheetClose asChild>
-                <Button variant="ghost" size="icon" aria-label={t('common.nav.closeMenu')}>
-                  <X aria-hidden />
-                </Button>
-              </SheetClose>
-            </SheetHeader>
-            <div className="p-3">
-              <AppNav onNavigate={() => setMenuOpen(false)} />
-            </div>
-          </SheetContent>
-        </Sheet>
+      <AppSidebar />
 
-        <Link
-          to="/"
-          className="flex min-h-11 items-center rounded-md px-2 font-semibold tracking-tight focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
-        >
-          {app.name}
-        </Link>
-
-        <div className="ml-auto flex items-center gap-1">
-          <LanguageSwitcher />
-          <ThemeToggle />
-          <UserMenu />
-        </div>
-      </header>
-
-      <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
-        <aside className="sticky top-14 hidden h-[calc(100svh-3.5rem)] overflow-y-auto border-r p-3 lg:block">
-          <AppNav />
-        </aside>
-        <main id="main" tabIndex={-1} className="min-w-0 px-4 py-6 outline-none md:px-6 lg:px-8">
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
+      <SidebarInset className="min-w-0">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background px-2 sm:px-4 lg:px-6">
+          <NavTrigger />
+          {page && (
+            <>
+              <Separator orientation="vertical" className="data-[orientation=vertical]:h-4" />
+              <AppBreadcrumbs page={page} />
+            </>
+          )}
+        </header>
+        <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none md:px-6 lg:px-8">
+          <div className={cn('mx-auto w-full', contentWidth[page?.kind ?? 'other'])}>
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
+          </div>
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

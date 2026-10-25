@@ -3,13 +3,17 @@
   "nav": {
     "label": "Nawigacja główna",
     "openMenu": "Otwórz menu",
-    "closeMenu": "Zamknij menu"
+    "closeMenu": "Zamknij menu",
+    "expand": "Rozwiń nawigację",
+    "collapse": "Zwiń nawigację",
+    "toggle": "Przełącz nawigację",
+    "shortcut": "Skrót: {{keys}}",
+    "breadcrumb": "Ścieżka nawigacji"
   },
   "language": {
     "label": "Język",
     "pl": "Polski",
-    "en": "English",
-    "trigger": "{{code}} – język: {{name}}"
+    "en": "English"
   },
   "theme": {
     "label": "Motyw",

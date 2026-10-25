@@ -83,6 +83,21 @@ Dialog titles use `text-section-title`.
 - Never use the same soft shadow under every card, coloured shadows or gradients.
 - Radius: `--radius` 0.5rem. Controls and badges `rounded-md`/`rounded-full`, cards `rounded-xl`, menus `rounded-md`.
 
+## App shell
+- **Sidebar** (`AppSidebar`, shadcn Sidebar, `bg-sidebar` with a `sidebar-border` edge): from `lg` it sits beside the
+  content and collapses to 60 px of icons (tooltips name them); the state is remembered (`localStorage` `sidebar`)
+  and Ctrl/⌘+B toggles it. Below `lg` it is an off-canvas sheet behind the header's menu button.
+- **Header of the sidebar**: the app mark, the initials of `app.name` in `bg-sidebar-primary`, and the name.
+  **Content**: the navigation, the active item in `sidebar-accent`. **Footer**: the user menu (initials avatar, name,
+  role labels), which holds language, theme and logout: submenus from `lg`, listed in the menu itself in the narrow
+  sheet. Tooltips appear only on the icons of the collapsed sidebar.
+- **Header** (`h-14`, `bg-background`, bottom border, sticky): the sidebar toggle and the breadcrumbs, list › record
+  (by the manifest's `display`) › edit. Below `md` only the last two crumbs. Page actions stay in `PageHeader`.
+- **Content**: `px-4 py-6`, `md:px-6`, `lg:px-8`, centred with a max width by page kind: lists `max-w-7xl`,
+  detail `max-w-6xl`, forms `max-w-4xl`.
+- Menu buttons are 44 px high, also as icons, so the sidebar works on touch screens from `lg` too; the sheet's open
+  and close buttons and the breadcrumb links are 44 px wherever they are the touch path (below `lg` / `md`).
+
 ## Motion
 Motion only answers an action: a dialog, sheet, menu or toast opening or closing (`tw-animate-css` classes from shadcn,
 150-300 ms). No entrance animations on page load, and no hover transitions beyond colour. Anything that moves must

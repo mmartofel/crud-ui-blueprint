@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { authFile, openAs } from './support/auth.ts'
 import { callApi, deleteViaApi, expectListParams, unique } from './support/data.ts'
+import { switchLanguage } from './support/shell.ts'
 
 // Detail URLs of records created by the current test; afterEach deletes them (newest first, so tasks go before the
 // persons they reference) even when the test fails.
@@ -131,8 +132,7 @@ test.describe('persons as writer', () => {
     await expect(page).toHaveURL('/persons/new')
 
     // The server error is translated from its code, so it follows a language switch.
-    await page.getByRole('button', { name: /^EN – language/ }).click()
-    await page.getByRole('menuitemradio', { name: 'Polski' }).click()
+    await switchLanguage(page, 'Polski')
     await expect(page.getByText('Ta wartość jest już zajęta.')).toBeVisible()
 
     expect(created).toEqual([url])
@@ -249,8 +249,7 @@ test.describe('persons as writer', () => {
     await expect(page.getByText('Poland')).toBeVisible()
 
     // Country names follow the UI language (Intl.DisplayNames), the stored code stays the same.
-    await page.getByRole('button', { name: /^EN – language/ }).click()
-    await page.getByRole('menuitemradio', { name: 'Polski' }).click()
+    await switchLanguage(page, 'Polski')
     await expect(page.getByText('Polska')).toBeVisible()
     await expect(page.getByText('Niedostępna')).toBeVisible()
 

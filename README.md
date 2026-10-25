@@ -8,8 +8,8 @@ reference examples in `.claude/skills/crud-resource/references/examples/`.
 
 What you get without writing a screen:
 - sign-in with OIDC (Keycloak; Authorization Code + PKCE), roles from the token, actions hidden by role;
-- a responsive shell (sidebar from `lg`, sheet menu below), light/dark theme, languages from the manifest (PL and EN
-  included);
+- a responsive shell (sidebar from `lg`, collapsible to icons with Ctrl/⌘+B, a sheet menu below; breadcrumbs; a user
+  menu with language and theme), light/dark theme, languages from the manifest (PL and EN included);
 - lists with search, sorting, paging and filters kept in the URL, table from `md` and cards below;
 - detail pages, create/edit forms validated with the contract's Zod schemas, server field errors on the fields,
   stale-version reload, unsaved-changes guard, delete with confirmation, relations between resources;
@@ -101,7 +101,7 @@ Keycloak is set up the same way for every API (realm roles `<realm>-viewer` and 
 ## Configuration
 | Where | What |
 |---|---|
-| `ui-manifest.yaml` `app` | `name` (header, `<title>`, page titles), `languages` (first = default) |
+| `ui-manifest.yaml` `app` | `name` (sidebar and its initials mark, `<title>`, page titles), `languages` (first = default) |
 | `ui-manifest.yaml` `resources` | one entry per resource; every key is shown in the examples' `manifest.yaml` |
 | `.env.local` (from `.env.example`) | `VITE_OIDC_AUTHORITY`, `VITE_OIDC_CLIENT_ID`, `VITE_OIDC_ROLES_CLAIM`, `API_PROXY_TARGET`, `CONTRACT_SOURCE`, `E2E_WRITER_*`, `E2E_READER_*` |
 | `src/locales/<lang>/` | all screen text; a new language also needs a line in `src/i18n/resources.ts` |

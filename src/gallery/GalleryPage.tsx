@@ -55,8 +55,8 @@ export function GalleryPage() {
         <div>
           <h1 className="text-page-title">Component gallery</h1>
           <p className="mt-1 max-w-prose text-sm text-muted-foreground">
-            The generic components with the persons and tasks fixtures. Theme and language: header. Rules:
-            docs/DESIGN.md.
+            The generic components with the persons and tasks fixtures, inside the app shell. Theme and
+            language: user menu at the bottom of the sidebar. Rules: docs/DESIGN.md.
           </p>
         </div>
         <div className="flex flex-col gap-2">

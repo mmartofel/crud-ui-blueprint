@@ -63,6 +63,7 @@ export function memorySource(resource: Resource, records: object[]): ResourceSou
   const all = records as ({ id: number } & object)[]
   return {
     listKey: (params) => ['gallery', resource.key, params],
+    getKey: (id) => ['gallery', resource.key, id],
     get: async (id) => {
       const record = all.find((r) => r.id === id)
       if (!record) throw new Error(`No ${resource.key} ${id}`)

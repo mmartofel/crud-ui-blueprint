@@ -73,7 +73,30 @@ test('delete asks for confirmation and toasts; the theme switches to dark', asyn
   await confirm.getByRole('button', { name: 'Delete' }).click()
   await expect(page.getByRole('region', { name: /Notifications/ })).toContainText('deleted')
 
-  await page.getByRole('button', { name: /^Theme:/ }).click()
+  await page.getByRole('button', { name: /user menu/ }).click()
+  await page.getByRole('menuitem', { name: /^Theme/ }).click()
   await page.getByRole('menuitemradio', { name: 'Dark' }).click()
   await expect(page.locator('html')).toHaveClass(/dark/)
+})
+
+test('the breadcrumbs name the opened record and lead back to the list', async ({ page }) => {
+  await openGallery(page)
+  const breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' })
+  await expect(breadcrumbs.getByText('Persons')).toHaveAttribute('aria-current', 'page')
+
+  await page.locator('#list').getByRole('link', { name: 'Prepare the quarterly report' }).click()
+  await expect(breadcrumbs.getByText('Prepare the quarterly report')).toHaveAttribute('aria-current', 'page')
+  await breadcrumbs.getByRole('link', { name: 'Tasks' }).click()
+  await expect(breadcrumbs.getByText('Tasks')).toHaveAttribute('aria-current', 'page')
+})
+
+test('the sidebar collapses to icons and the active item is marked', async ({ page }) => {
+  await openGallery(page)
+  const nav = page.getByRole('navigation', { name: 'Main navigation' })
+  await expect(nav.getByRole('link', { name: 'Persons' })).toHaveAttribute('aria-current', 'page')
+
+  await page.getByRole('button', { name: 'Collapse navigation' }).click()
+  await expect(page.locator('[data-slot=sidebar]')).toHaveAttribute('data-state', 'collapsed')
+  await expect(nav.getByRole('link', { name: 'Persons' })).toBeVisible()
+  expect(await page.evaluate(() => localStorage.getItem('sidebar'))).toBe('collapsed')
 })

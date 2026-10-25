@@ -4,7 +4,7 @@
 # Every key is shown in the reference entries in .claude/skills/crud-resource/references/examples/*/manifest.yaml.
 
 app:
-  # Shown in the header, the browser tab (<title>) and every page title.
+  # Shown in the sidebar (with its initials as the app mark), the browser tab (<title>) and every page title.
   name: CRUD UI
   # Languages offered by the switcher; the first one is the default and the fallback.
   # Each needs src/locales/<lang>/ and a line in src/i18n/resources.ts.

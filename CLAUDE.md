@@ -51,7 +51,8 @@ src/api/fetcher.ts           # the only HTTP client: base URL, bearer token, Pro
 src/api/sources.ts           # generated list/get per resource, for relations and related lists (one line each)
 src/auth/                    # OIDC provider, useAuth/useRoles hooks, RequireRole guard
 src/i18n/  src/locales/{pl,en}/
-src/components/ui/           # shadcn components (generated, may be edited)
+src/components/ui/           # shadcn components (generated, may be edited; each local change carries a comment)
+src/hooks/                   # shadcn hooks (use-mobile: the sidebar's lg breakpoint)
 src/components/app/          # app shell, data table, list filters, country/relation pickers, related lists, form helpers, dialogs, states
 src/features/<resource>/     # one folder per resource: list, detail, form, routes
 src/gallery/                 # dev-only component gallery at /__gallery (fixtures, no env/API/login; not in the build)
@@ -103,12 +104,14 @@ A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never han
   `<resource>.filters.<param>`, `enums.<EnumName>.<VALUE>`. Field labels are never hard-coded and never derived from
   field names. Country names come from `Intl.DisplayNames`, never from locale files. Shared `common.*` labels are used
   by every resource, so they must fit any of them (in Polish: gender-neutral, "Dodaj", not "Nowy").
-- Language: user choice (switcher in the header, languages from `app.languages`), remembered in localStorage,
+- Language: user choice (in the user menu, languages from `app.languages`), remembered in localStorage,
   default from the browser, fallback the first of `app.languages`. Pass the language to Keycloak as `ui_locales`. Dates and numbers are
   formatted with `Intl` in the current language. Validation messages are translated through one global
   Zod error map, so generated schemas need no per-field messages.
 - Responsive: mobile first. Check 375px, 768px and 1440px.
-  - App shell: sidebar from `lg`, a sheet menu below it.
+  - App shell (`AppShell`, `AppSidebar`): shadcn Sidebar from `lg`, collapsible to icons (remembered, Ctrl/⌘+B), an
+    off-canvas sheet below it; user menu (language, theme, logout) in its footer; header breadcrumbs from the route and
+    the manifest's `display`; content max width by page kind (lists widest, forms narrowest). See `docs/DESIGN.md`.
   - Lists: table from `md`, cards below `md` (titled by the manifest's `display`; columns marked `mobile: subtitle` below it).
     A table wider than the screen scrolls inside its own frame, never the page, with a fade on the edge that has more
     columns; order manifest columns by importance. List filters are a row from `md` and a bottom sheet below it.
@@ -127,7 +130,7 @@ A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never han
 - Accessibility: semantic HTML, every input has a label, visible focus, dialogs trap focus,
   colour is never the only signal. Light and dark theme from shadcn tokens; no hard-coded colours.
   A control that disappears after use (e.g. "Clear filters") moves focus to a sensible neighbour. Sheets use a labelled
-  close `Button` in `SheetHeader`, as in `AppShell` (the shadcn default close button has no name).
+  close `Button` in `SheetHeader`, as in `AppSidebar` (the shadcn default close button has no name).
 - Open UI findings that were not fixed are listed under "Known gaps" in `docs/PATTERNS.md` section 3.
 
 ## How to build a resource

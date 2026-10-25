@@ -44,8 +44,8 @@ Example: a resource `orders` with API tag `Orders`. Steps 1–3 come before any 
 
    Then:
    - add `'orders'` to `ResourceKey` in `src/manifest/index.ts`;
-   - add one line to `src/api/sources.ts` (`list`, `get`, `listKey` from the generated client) so other resources
-     can relate to it;
+   - add one line to `src/api/sources.ts` (`list`, `get`, `listKey`, `getKey` from the generated client) so other
+     resources can relate to it and the breadcrumbs can name its records;
    - add any new `nav.icon` name to `src/manifest/icons.ts`.
 
    Ask when a decision is missing; do not guess.
@@ -184,6 +184,13 @@ above and in the git log.
 Known gaps, left as is:
 - **Template (step 10 review):** buttons are 44px below `md` and 36px from `md`, so at 768-1023 px (sheet menu, touch
   devices) the header buttons are 36px. It meets the written rule ("touch targets on mobile"); kept as a decision.
+  Since D2 the sheet's open and close buttons are 44px up to `lg`; other buttons keep the rule.
+- **Open from the D2 (app shell) review:**
+  - on very wide screens (1920) the breadcrumbs start at the header's left padding, not at the centred content
+    column's edge;
+  - the Playwright MCP browser stops delivering clicks to a tab after the Keycloak login redirect (not even a
+    `pointerdown` reaches the page); standalone Playwright and the e2e suite are not affected. Check the signed-in app
+    with a standalone script, or close and reopen the MCP page.
 - **Open from the step 9a review (user: "commit as is"):**
   - the mobile filter sheet applies filters live and closes only with its X; no "Show results" button;
   - native date inputs (`availableOn`, the form dates) show the browser's date format, not the app language;

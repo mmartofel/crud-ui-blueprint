@@ -93,7 +93,7 @@ export interface ResourceManifest {
 export type ResourceKey = never
 
 interface AppManifest {
-  /** Shown in the header, `<title>` and every page title. */
+  /** Shown in the sidebar (its initials are the app mark), `<title>` and every page title. */
   name: string
   /** Language codes offered by the switcher; the first is the default. */
   languages: string[]

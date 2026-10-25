@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { authFile, fillLoginForm, isLoginPage, loginAs, openAs } from './support/auth.ts'
+import { openUserMenu, switchLanguage } from './support/shell.ts'
 
 // The app shell, valid for a project without resources. When the first resource exists, `/` opens its list instead
 // of "No resources yet": update the expectations marked HOME (see the examples in .claude/skills/crud-resource).
@@ -18,7 +19,7 @@ test.describe('app shell', () => {
 
     // HOME
     await expect(page.getByRole('heading', { level: 1, name: 'No resources yet' })).toBeVisible()
-    await page.getByRole('button', { name: /user menu/i }).click()
+    await openUserMenu(page)
     await expect(page.getByRole('menu')).toContainText('Roles')
     await page.getByRole('menuitem', { name: 'Log out' }).click()
 
@@ -28,8 +29,7 @@ test.describe('app shell', () => {
   test('the language switch is remembered and passed to the login page', async ({ page }) => {
     await loginAs(page, 'reader')
 
-    await page.getByRole('button', { name: /^EN – language/ }).click()
-    await page.getByRole('menuitemradio', { name: 'Polski' }).click()
+    await switchLanguage(page, 'Polski')
 
     // HOME
     await expect(page.getByRole('heading', { level: 1, name: 'Brak zasobów' })).toBeVisible()
@@ -37,7 +37,7 @@ test.describe('app shell', () => {
     await page.reload()
     await expect(page.getByRole('heading', { level: 1, name: 'Brak zasobów' })).toBeVisible()
 
-    await page.getByRole('button', { name: /menu użytkownika/i }).click()
+    await openUserMenu(page)
     await page.getByRole('menuitem', { name: 'Wyloguj' }).click()
     await page.waitForURL(/ui_locales=pl/)
   })
@@ -71,16 +71,33 @@ test.describe('app shell as reader', () => {
     await expect(page).toHaveURL('/')
   })
 
+  test('on desktop the sidebar collapses to icons, by button or Ctrl+B, and stays collapsed', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'the sidebar collapses from lg')
+    await openAs(page, '/no-such-page')
+
+    await page.getByRole('button', { name: 'Collapse navigation' }).click()
+    await expect(page.getByRole('button', { name: 'Expand navigation' })).toBeVisible()
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Expand navigation' })).toBeVisible()
+
+    // ⌘B on a Mac, Ctrl+B elsewhere, by the browser's user agent (as the app decides).
+    const mac = await page.evaluate(() => /Mac|iPhone|iPad/.test(navigator.userAgent))
+    await page.keyboard.press(mac ? 'Meta+b' : 'Control+b')
+    await expect(page.getByRole('button', { name: 'Collapse navigation' })).toBeVisible()
+  })
+
   test('on mobile the menu button opens the navigation sheet', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'the sheet menu is used below lg')
     await openAs(page, '/no-such-page')
 
     await page.getByRole('button', { name: 'Open menu' }).click()
     const dialog = page.getByRole('dialog')
-    // HOME: no resources yet, so the navigation is empty; with resources, click one and expect its route.
-    await expect(dialog.getByRole('heading', { name: 'Main navigation' })).toBeVisible()
+    // HOME: no resources yet, so there is no navigation; with resources, click one and expect its route.
+    await expect(dialog.getByRole('navigation', { name: 'Main navigation' })).toHaveCount(0)
+    await expect(dialog.getByRole('button', { name: /user menu/i })).toBeVisible()
     await dialog.getByRole('button', { name: 'Close menu' }).click()
     await expect(dialog).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Open menu' })).toBeFocused()
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
