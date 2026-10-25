@@ -2,7 +2,7 @@ import { useCallback, type ReactNode } from 'react'
 import { AuthProvider as OidcAuthProvider } from 'react-oidc-context'
 import type { User } from 'oidc-client-ts'
 import { safeReturnTo } from './returnTo'
-import { userManager, type LoginState } from './userManager'
+import { getUserManager, type LoginState } from './userManager'
 
 interface AuthProviderProps {
   /** Replaces the callback URL with the URL the user wanted before login. */
@@ -20,7 +20,7 @@ export function AuthProvider({ navigate, children }: AuthProviderProps) {
   )
 
   return (
-    <OidcAuthProvider userManager={userManager} onSigninCallback={onSigninCallback}>
+    <OidcAuthProvider userManager={getUserManager()} onSigninCallback={onSigninCallback}>
       {children}
     </OidcAuthProvider>
   )

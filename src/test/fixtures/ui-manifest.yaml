@@ -22,9 +22,9 @@ resources:
         - { field: lastName,     sortable: true }
         - { field: firstName,    sortable: true }
         # Status before Email: it stays in view when the table is wider than the screen (from 768 px).
-        # format: badge maps each value to a shadcn Badge variant (default, secondary, outline, destructive)
+        # format: badge maps each value to a Badge variant: success, warning, info, destructive for a status (docs/DESIGN.md), or default, secondary, outline
         - { field: status,       sortable: true, format: badge, enum: PersonStatus, mobile: subtitle,
-            badge: { AVAILABLE: default, UNAVAILABLE: secondary } }
+            badge: { AVAILABLE: success, UNAVAILABLE: secondary } }
         - { field: email,        sortable: true, mobile: subtitle }
         - { field: address.city, sortable: true }
         - { field: birthDate,    sortable: true, format: date }
@@ -81,9 +81,9 @@ resources:
         - { field: title,    sortable: true }
         # a boolean as a badge: labels are enums.TaskState.true / .false
         - { field: done,     sortable: true, format: badge, enum: TaskState, mobile: subtitle,
-            badge: { "false": outline, "true": secondary } }
+            badge: { "false": outline, "true": success } }
         - { field: priority, sortable: true, format: badge, enum: Priority, mobile: subtitle,
-            badge: { HIGH: destructive, MEDIUM: secondary, LOW: outline } }
+            badge: { HIGH: destructive, MEDIUM: warning, LOW: outline } }
         - { field: dueDate,  sortable: true, format: date, mobile: subtitle }
         # format: relation shows the embedded reference's label, linked to the related record
         - { field: assignee, format: relation, resource: persons, mobile: subtitle }

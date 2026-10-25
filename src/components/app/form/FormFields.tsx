@@ -211,6 +211,7 @@ function FormField<T extends FieldValues, TOut extends FieldValues>({
         min={config.notBefore && typeof earliest === 'string' && earliest ? earliest : limits?.min}
         max={limits?.max}
         step={limits?.step ?? (config.input === 'number' ? 'any' : undefined)}
+        className={config.input === 'number' ? 'tabular-nums' : undefined}
       />
     )
   }

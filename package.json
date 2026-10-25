@@ -19,6 +19,7 @@
     "contract:check": "if node scripts/has-contract.mjs; then orval && git diff --quiet HEAD -- src/api/generated && test -z \"$(git status --porcelain -- src/api/generated)\" || (echo \"src/api/generated is out of date: run npm run api:generate and commit the result\" >&2 && exit 1); fi"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
     "@hookform/resolvers": "^5.9.2",
     "@tanstack/react-query": "^5.104.5",
     "@tanstack/react-table": "^9.3.1",

@@ -20,8 +20,10 @@ export default defineConfig({
   projects: [
     // Signs in each demo user once; tests pick a role with `test.use({ storageState: authFile(user) })`.
     { name: 'setup', testMatch: /auth\.setup\.ts/ },
-    { name: 'desktop', use: { ...devices['Desktop Chrome'] }, dependencies: ['setup'] },
-    { name: 'mobile', use: { ...devices['Pixel 7'] }, dependencies: ['setup'] },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'] }, dependencies: ['setup'], testIgnore: /gallery\.spec\.ts/ },
+    { name: 'mobile', use: { ...devices['Pixel 7'] }, dependencies: ['setup'], testIgnore: /gallery\.spec\.ts/ },
+    // The component gallery needs no login or API: `npx playwright test --project=gallery` runs without .env.local.
+    { name: 'gallery', use: { ...devices['Desktop Chrome'] }, testMatch: /gallery\.spec\.ts/ },
   ],
   webServer: {
     command: 'npm run dev',

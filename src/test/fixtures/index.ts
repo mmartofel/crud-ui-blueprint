@@ -1,6 +1,6 @@
 // Test fixtures: the persons and tasks resources of the reference app (Person UI), so the generic code keeps its
 // unit tests in a project without resources. `api/` holds their generated Zod schemas, frozen; `locales/` their
-// labels. The app never imports this folder.
+// labels. The app never imports this folder; the dev-only component gallery (src/gallery) does.
 import i18n from 'i18next'
 import enEnums from './locales/en/enums.json'
 import enPersons from './locales/en/persons.json'

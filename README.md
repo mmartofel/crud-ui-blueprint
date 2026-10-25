@@ -13,7 +13,9 @@ What you get without writing a screen:
 - lists with search, sorting, paging and filters kept in the URL, table from `md` and cards below;
 - detail pages, create/edit forms validated with the contract's Zod schemas, server field errors on the fields,
   stale-version reload, unsaved-changes guard, delete with confirmation, relations between resources;
-- unit tests (Vitest) for all of that, e2e tests (Playwright) for the shell, CircleCI.
+- a calm, themable look: one file of design tokens (`src/styles/theme.css`, light and dark), Inter, rules in
+  [docs/DESIGN.md](docs/DESIGN.md), and a component gallery at `/__gallery` in the dev server (no API or login needed);
+- unit tests (Vitest) for all of that, e2e tests (Playwright) for the shell and the gallery, CircleCI.
 
 Stack: Vite, React, TypeScript (strict), React Router, Tailwind CSS v4, shadcn/ui, TanStack Query and Table, React
 Hook Form + Zod, orval, i18next, Vitest + Testing Library, Playwright.
@@ -91,6 +93,7 @@ Keycloak is set up the same way for every API (realm roles `<realm>-viewer` and 
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
 | `npm run e2e` | Playwright (needs the API and the OIDC provider running, users from `.env.local`) |
+| `npx playwright test --project=gallery` | Only the component gallery tests (no API, OIDC or `.env.local`) |
 | `npm run contract:pull` | Copy the contract from `CONTRACT_SOURCE` into `contract/openapi.json` |
 | `npm run api:generate` | Regenerate `src/api/generated/` from the contract (a no-op until there is one) |
 | `npm run contract:check` | Fail if `src/api/generated/` is out of date with the contract (CI) |
@@ -103,16 +106,18 @@ Keycloak is set up the same way for every API (realm roles `<realm>-viewer` and 
 | `.env.local` (from `.env.example`) | `VITE_OIDC_AUTHORITY`, `VITE_OIDC_CLIENT_ID`, `VITE_OIDC_ROLES_CLAIM`, `API_PROXY_TARGET`, `CONTRACT_SOURCE`, `E2E_WRITER_*`, `E2E_READER_*` |
 | `src/locales/<lang>/` | all screen text; a new language also needs a line in `src/i18n/resources.ts` |
 
-Without `.env.local` the app stops with a console error naming the missing `VITE_OIDC_*` variable.
+Without `.env.local` the app stops with a console error naming the missing `VITE_OIDC_*` variable; the gallery
+(`/__gallery`) works without it. The look (brand colour, surfaces, font) is changed in `src/styles/theme.css`, see
+[docs/DESIGN.md](docs/DESIGN.md).
 
 ## Repository
 - `src/components/app/`, `src/manifest/`, `src/auth/`, `src/i18n/`, `src/api/fetcher.ts`: the generic app, driven by
   the manifest. Resources live in `src/features/<resource>/` (none yet; `/` shows "No resources yet").
 - `src/test/fixtures/`: the example resources' manifest, schemas and labels, so the generic code has unit tests
-  before your first resource exists.
+  and the gallery (`src/gallery/`) has screens before your first resource exists.
 - `.claude/skills/crud-ui-init`, `.claude/skills/crud-resource` (with `references/wiring.md` and `references/examples/`),
   `.claude/agents/contract-auditor.md`, `.claude/agents/ui-reviewer.md`, `.claude/hooks/typecheck.sh`.
-- `docs/API-CONTRACT.md` (for API teams), `docs/API-KICKSTART.md` and `docs/API-CLAUDE.md` (new Spring Boot API), `docs/PATTERNS.md` (lessons).
+- `docs/API-CONTRACT.md` (for API teams), `docs/API-KICKSTART.md` and `docs/API-CLAUDE.md` (new Spring Boot API), `docs/PATTERNS.md` (lessons), `docs/DESIGN.md` (visual rules).
 
 ## CI
 CircleCI (`.circleci/config.yml`) runs typecheck, lint, unit tests, build and `contract:check` on every push. Enable

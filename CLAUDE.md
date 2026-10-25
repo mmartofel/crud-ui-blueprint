@@ -45,6 +45,7 @@ write role) and a reader (read role only). App name and languages are in `ui-man
 ```
 contract/openapi.json        # copy of the API contract; never edit by hand
 ui-manifest.yaml             # app name and languages; UI decisions per resource: columns, filters, form layout, permissions
+src/styles/theme.css         # the look in one place: colour tokens (light, dark), radius, shadows, font, type scale
 src/api/generated/           # orval output; never edit, regenerate instead
 src/api/fetcher.ts           # the only HTTP client: base URL, bearer token, Problem Details -> ApiError
 src/api/sources.ts           # generated list/get per resource, for relations and related lists (one line each)
@@ -53,8 +54,10 @@ src/i18n/  src/locales/{pl,en}/
 src/components/ui/           # shadcn components (generated, may be edited)
 src/components/app/          # app shell, data table, list filters, country/relation pickers, related lists, form helpers, dialogs, states
 src/features/<resource>/     # one folder per resource: list, detail, form, routes
-src/test/fixtures/           # persons/tasks manifest, schemas and labels for unit tests of the generic code (not used by the app)
-e2e/                         # Playwright tests (shell.spec.ts; one spec per resource)
+src/gallery/                 # dev-only component gallery at /__gallery (fixtures, no env/API/login; not in the build)
+src/test/fixtures/           # persons/tasks manifest, schemas and labels for unit tests of the generic code and the gallery
+e2e/                         # Playwright tests (shell.spec.ts, gallery.spec.ts; one spec per resource)
+docs/DESIGN.md               # visual rules: tokens, typography, density, elevation, status colours; the reference for screens
 docs/API-CONTRACT.md         # contract rules the API must follow (checked by the contract-auditor agent); hand it to API teams
 docs/API-CLAUDE.md           # CLAUDE.md template for a new Spring Boot API that serves this UI (copied as is)
 docs/API-KICKSTART.md        # how to start that API: files to copy and the first-session prompt
@@ -94,6 +97,7 @@ A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never han
   (`spring-person-api-claude`, commit `f98300e`) as the model for the shared classes.
 
 ## UI conventions
+- Look: follow `docs/DESIGN.md` (tokens only, no raw colours); check a changed component in `/__gallery`.
 - Every screen text goes through i18n. Keys: `common.*`, `<resource>.title`, `<resource>.fields.<field>`
   (`<resource>.fields.<object>.<field>` for a nested object), `<resource>.groups.<object>` (a nested object's own label),
   `<resource>.filters.<param>`, `enums.<EnumName>.<VALUE>`. Field labels are never hard-coded and never derived from

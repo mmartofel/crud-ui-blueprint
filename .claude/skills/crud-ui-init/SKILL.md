@@ -12,9 +12,12 @@ themselves are built by the `crud-resource` skill, one resource at a time. Conve
 ## 1. Ask (one message, all at once)
 If the API was started from `docs/API-KICKSTART.md`, its README has a "Connect a UI" section with the `.env.local`
 values (OIDC, roles claim, proxy target, contract source, e2e users) and the role names: read it (ask for its path)
-and ask only for the rest (app name, languages, role labels).
+and ask only for the rest (app name, languages, role labels, brand colour).
 
-- **App name** (header, browser tab, page titles).
+- **App name** (header, browser tab, page titles) and a **project name** for `package.json` (kebab-case, e.g.
+  `order-ui`; propose one from the app name).
+- **Brand colour**: one colour (hex or oklch), or a theme exported from https://tweakcn.com (Tailwind v4 CSS). Without
+  an answer the template's calm blue stays.
 - **Languages**, default first (`pl`, `en` have locale files; another needs `src/locales/<lang>/` copied from `en`
   and translated, plus a line in `src/i18n/resources.ts`).
 - **Contract source**: a local path or an http(s) URL of the API's `openapi.json` (pin a tag or commit for URLs).
@@ -32,6 +35,13 @@ Ask what is missing; never guess a URL, role or realm.
 
 ## 2. Configure
 - [ ] `ui-manifest.yaml` `app`: `name`, `languages`.
+- [ ] `package.json` `name` (and the two `name` fields at the top of `package-lock.json`) = the project name.
+- [ ] Brand in `src/styles/theme.css`, following `docs/DESIGN.md` "Changing the brand": a single colour replaces
+      `--primary`, `--ring`, `--sidebar-primary`, `--sidebar-ring` in both blocks (light L 0.50-0.55, dark
+      L 0.70-0.75, same hue and chroma) and the hue of the tinted neutrals; a tweakcn theme replaces the `:root` and
+      `.dark` blocks, keeping the extra tokens the file header names. Check contrast as DESIGN.md says (a -foreground on its
+      colour at least 4.5:1, `ring` at least 3:1 on `background`, `card` and `sidebar`), adjust lightness until it
+      passes, and show `/__gallery` in light and dark to the user.
 - [ ] `.env.local` from `.env.example`: `VITE_OIDC_*` (with the roles claim), `API_PROXY_TARGET`, `CONTRACT_SOURCE`,
       `E2E_*`.
 - [ ] `common.roles.<role>` labels in every `src/locales/<lang>/common.json`.

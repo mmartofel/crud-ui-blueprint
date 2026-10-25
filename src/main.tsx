@@ -16,16 +16,29 @@ setAccessTokenGetter(getAccessToken)
 setUnauthorizedHandler(() => void login().catch(() => {}))
 
 const navigateAfterLogin = (to: string) => void router.navigate(to, { replace: true })
+const root = createRoot(document.getElementById('root')!)
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AuthProvider navigate={navigateAfterLogin}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <RouterProvider router={router} />
-          <Toaster />
-        </ThemeProvider>
-      </QueryClientProvider>
-    </AuthProvider>
-  </StrictMode>,
-)
+// The component gallery (docs/DESIGN.md): dev server only, outside AuthProvider, so it needs no .env.local.
+// In a production build DEV is false and the branch with its chunk is dropped.
+if (import.meta.env.DEV && window.location.pathname.startsWith('/__gallery')) {
+  void import('@/gallery/Gallery').then(({ Gallery }) =>
+    root.render(
+      <StrictMode>
+        <Gallery />
+      </StrictMode>,
+    ),
+  )
+} else {
+  root.render(
+    <StrictMode>
+      <AuthProvider navigate={navigateAfterLogin}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <RouterProvider router={router} />
+            <Toaster />
+          </ThemeProvider>
+        </QueryClientProvider>
+      </AuthProvider>
+    </StrictMode>,
+  )
+}

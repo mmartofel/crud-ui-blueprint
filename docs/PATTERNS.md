@@ -203,6 +203,9 @@ Known gaps, left as is:
 - user-menu labels are not read by screen readers;
 - a server `past` error is cleared by a client-side re-validation until the next save;
 - the API reports birth-date errors before duplicate-email errors, so the user sees them one save at a time.
+- **Design foundations (`docs/DESIGN.md`):** rules the generic components do not follow yet: numeric list columns
+  right-aligned, the shell's sidebar on the `sidebar` surface and its content on cards (the shell and the resource
+  screens are restyled next).
 
 ## 4. `ui-manifest.yaml`: what was missing, what is unused
 
@@ -214,7 +217,7 @@ Known gaps, left as is:
 **Added in step 9a (Person changes):**
 - Dot paths in `columns[].field` and `form.fields` keys (`address.city`), `{ object, groups }` fieldsets in `form.groups`;
   a nested field in `detail.fields` is one labelled block.
-- `format: badge` with `badge: { VALUE: <shadcn Badge variant> }` on a column; it applies wherever the field is shown.
+- `format: badge` with `badge: { VALUE: <Badge variant> }` (status colours success, warning, info, destructive: docs/DESIGN.md) on a column; it applies wherever the field is shown.
 - `input: country` (form and filter) and the matching `country` format.
 - `notBefore: <field>` on a form field: a client `date-range` rule plus the native `min`.
 - `list.filters` (`param`, `input`, `enum`).

@@ -17,9 +17,9 @@
         - { field: title,    sortable: true }
         # a boolean as a badge: labels are enums.TaskState.true / .false
         - { field: done,     sortable: true, format: badge, enum: TaskState, mobile: subtitle,
-            badge: { "false": outline, "true": secondary } }
+            badge: { "false": outline, "true": success } }
         - { field: priority, sortable: true, format: badge, enum: Priority, mobile: subtitle,
-            badge: { HIGH: destructive, MEDIUM: secondary, LOW: outline } }
+            badge: { HIGH: destructive, MEDIUM: warning, LOW: outline } }
         - { field: dueDate,  sortable: true, format: date, mobile: subtitle }
         # format: relation shows the embedded reference's label, linked to the related record
         - { field: assignee, format: relation, resource: persons, mobile: subtitle }

@@ -4,8 +4,8 @@ import manifestData from '../../ui-manifest.yaml'
 
 export type FieldFormat = 'text' | 'date' | 'dateTime' | 'number' | 'enum' | 'badge' | 'country' | 'relation'
 
-/** A shadcn Badge variant, so badge colours come from the theme tokens. */
-export type BadgeVariant = 'default' | 'secondary' | 'outline' | 'destructive'
+/** A Badge variant, so badge colours come from the theme tokens (status colours: docs/DESIGN.md). */
+export type BadgeVariant = 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning' | 'info'
 
 export interface ColumnManifest {
   /** A field name, or a dot path into a nested object (`address.city`). */

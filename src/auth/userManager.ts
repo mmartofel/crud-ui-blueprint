@@ -8,16 +8,24 @@ function requireEnv(name: 'VITE_OIDC_AUTHORITY' | 'VITE_OIDC_CLIENT_ID'): string
   return value
 }
 
-// The one OIDC client of the app (Keycloak, Authorization Code + PKCE).
-export const userManager = new UserManager({
-  authority: requireEnv('VITE_OIDC_AUTHORITY'),
-  client_id: requireEnv('VITE_OIDC_CLIENT_ID'),
-  redirect_uri: `${window.location.origin}/`,
-  post_logout_redirect_uri: `${window.location.origin}/`,
-  scope: 'openid profile email',
-  automaticSilentRenew: true,
-  userStore: new WebStorageStateStore({ store: window.sessionStorage }),
-})
+let userManager: UserManager | undefined
+
+/**
+ * The one OIDC client of the app (Keycloak, Authorization Code + PKCE). Created on first use, so modules that import
+ * `@/auth` load without the OIDC variables (the dev-only component gallery has none).
+ */
+export function getUserManager(): UserManager {
+  userManager ??= new UserManager({
+    authority: requireEnv('VITE_OIDC_AUTHORITY'),
+    client_id: requireEnv('VITE_OIDC_CLIENT_ID'),
+    redirect_uri: `${window.location.origin}/`,
+    post_logout_redirect_uri: `${window.location.origin}/`,
+    scope: 'openid profile email',
+    automaticSilentRenew: true,
+    userStore: new WebStorageStateStore({ store: window.sessionStorage }),
+  })
+  return userManager
+}
 
 export interface LoginState {
   returnTo: string
@@ -34,7 +42,7 @@ export async function login(returnTo = returnToFromLocation(window.location)): P
   redirecting = true
   const state: LoginState = { returnTo }
   try {
-    await userManager.signinRedirect({ state, ui_locales: i18n.language })
+    await getUserManager().signinRedirect({ state, ui_locales: i18n.language })
   } catch (error) {
     redirecting = false
     console.error('Login redirect failed', error)
@@ -43,6 +51,6 @@ export async function login(returnTo = returnToFromLocation(window.location)): P
 }
 
 export async function getAccessToken(): Promise<string | undefined> {
-  const user = await userManager.getUser()
+  const user = await getUserManager().getUser()
   return user && !user.expired ? user.access_token : undefined
 }
