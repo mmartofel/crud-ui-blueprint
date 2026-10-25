@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { FlexRender, rowSortingFeature, tableFeatures, useTable, type ColumnDef, type SortingState } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
-import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { fieldLabelKey, tDynamic } from '@/i18n/dynamic'
 import { cn } from '@/lib/utils'
-import { formatDisplay, getPath, type ColumnManifest, type Resource } from '@/manifest'
+import { formatDisplay, getPath, isNumeric, type ColumnManifest, type Resource } from '@/manifest'
 import { renderFieldValue } from '../formatValue'
 import type { ListState } from './listState'
 
@@ -25,10 +24,15 @@ interface DataTableProps<T extends Row> {
   onSortChange: (sort: ListState['sort']) => void
   /** Detail URL of a row; the first column links to it. */
   getRowHref: (row: T) => string
+  /** A row's actions menu (`RowActions`), only for users who may write; the last column, and beside each card. */
+  rowActions?: (row: T) => ReactNode
 }
 
-/** A manifest-driven list: a sortable table from `md`, cards below it. Sorting and paging are done by the API. */
-export function DataTable<T extends Row>({ resource, rows, sort, onSortChange, getRowHref }: DataTableProps<T>) {
+/**
+ * A manifest-driven list: a sortable table from `md`, a list of cards below it. Sorting and paging are done by the
+ * API. It fills a `Card` edge to edge (`ResourceList`): the table's first and last cells line up with the card's padding.
+ */
+export function DataTable<T extends Row>({ resource, rows, sort, onSortChange, getRowHref, rowActions }: DataTableProps<T>) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const language = i18n.resolvedLanguage ?? i18n.language
@@ -80,26 +84,40 @@ export function DataTable<T extends Row>({ resource, rows, sort, onSortChange, g
 
   return (
     <>
-      <div ref={frameRef} className="relative hidden overflow-hidden rounded-md border md:block">
+      <div ref={frameRef} className="relative hidden md:block">
         <ScrollHint side="left" visible={overflow.left} />
-        <ScrollHint side="right" visible={overflow.right} />
-        <Table>
-          <TableHeader>
+        {/* With row actions the fade sits left of their sticky column (w-16). */}
+        <ScrollHint side="right" visible={overflow.right} className={rowActions ? 'right-16' : undefined} />
+        {/* The frame scrolls both ways, so the header can stick to its top; it fits the viewport below the app header. */}
+        <Table
+          containerClassName="max-h-[calc(100dvh-10rem)] overflow-y-auto"
+          className="[&_td:first-child]:pl-6 [&_td:last-child]:pr-6 [&_th:first-child]:pl-6 [&_th:last-child]:pr-6"
+        >
+          <TableHeader className="sticky top-0 z-20 bg-card [&_tr]:border-b-0">
             {table.getHeaderGroups().map((group) => (
               <TableRow key={group.id}>
                 {group.headers.map((header) => {
                   const sorted = header.column.getIsSorted()
                   const label = tDynamic(t, fieldLabelKey(resource.key, header.column.id))
+                  const numeric = isNumeric(resource, header.column.id)
                   return (
                     <TableHead
                       key={header.id}
                       aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
+                      // A sticky header loses collapsed borders on scroll: the bottom line is an inset shadow.
+                      className={cn(
+                        'text-muted-foreground shadow-[inset_0_-1px_0_var(--color-border)]',
+                        numeric && 'text-right',
+                      )}
                     >
                       {header.column.getCanSort() ? (
                         <button
                           type="button"
                           onClick={header.column.getToggleSortingHandler()}
-                          className="-ml-2 inline-flex h-9 items-center gap-1 rounded-md px-2 font-medium hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
+                          className={cn(
+                            'inline-flex h-9 items-center gap-1 rounded-md px-2 font-medium hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none',
+                            numeric ? '-mr-2 flex-row-reverse' : '-ml-2',
+                          )}
                         >
                           {label}
                           {sorted === 'asc' ? (
@@ -121,6 +139,12 @@ export function DataTable<T extends Row>({ resource, rows, sort, onSortChange, g
                     </TableHead>
                   )
                 })}
+                {rowActions && (
+                  // Sticky on the right, so the menu stays reachable when the table scrolls sideways.
+                  <TableHead className="sticky right-0 w-16 min-w-16 bg-card shadow-[inset_0_-1px_0_var(--color-border),inset_1px_0_0_var(--color-border)]">
+                    <span className="sr-only">{t('common.list.actions')}</span>
+                  </TableHead>
+                )}
               </TableRow>
             ))}
           </TableHeader>
@@ -130,10 +154,11 @@ export function DataTable<T extends Row>({ resource, rows, sort, onSortChange, g
               return (
                 <TableRow
                   key={row.id}
-                  className="cursor-pointer"
+                  className="group cursor-pointer hover:bg-accent"
                   onClick={(event) => {
-                    // Clicks on the link itself (or with modifier keys) are handled by the browser.
-                    if ((event.target as HTMLElement).closest('a') || event.metaKey || event.ctrlKey) return
+                    // Clicks on the link itself, the actions menu (or with modifier keys) are handled by them.
+                    const target = event.target as HTMLElement
+                    if (target.closest('a, button, [role=menu]') || event.metaKey || event.ctrlKey) return
                     navigate(href)
                   }}
                 >
@@ -141,7 +166,10 @@ export function DataTable<T extends Row>({ resource, rows, sort, onSortChange, g
                     // The link column holds free text (a title can be long): it wraps instead of widening the table.
                     <TableCell
                       key={cell.id}
-                      className={cell.column.id === linkColumn ? 'max-w-96 min-w-48 whitespace-normal break-words' : undefined}
+                      className={cn(
+                        cell.column.id === linkColumn && 'max-w-96 min-w-48 whitespace-normal break-words',
+                        isNumeric(resource, cell.column.id) && 'text-right',
+                      )}
                     >
                       {cell.column.id === linkColumn ? (
                         <Link
@@ -155,6 +183,11 @@ export function DataTable<T extends Row>({ resource, rows, sort, onSortChange, g
                       )}
                     </TableCell>
                   ))}
+                  {rowActions && (
+                    <TableCell className="sticky right-0 z-10 w-16 min-w-16 bg-card py-1 text-right shadow-[inset_1px_0_0_var(--color-border)] group-hover:bg-accent">
+                      {rowActions(row.original)}
+                    </TableCell>
+                  )}
                 </TableRow>
               )
             })}
@@ -162,30 +195,28 @@ export function DataTable<T extends Row>({ resource, rows, sort, onSortChange, g
         </Table>
       </div>
 
-      <ul className="flex flex-col gap-2 md:hidden">
+      <ul className="divide-y md:hidden">
         {rows.map((row) => (
-          <li key={getRowHref(row)}>
-            <Link
-              to={getRowHref(row)}
-              className={cn(
-                'block rounded-xl focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none',
+          // The title link covers the whole row (a stretched link); the actions button sits above it, not inside.
+          <li key={getRowHref(row)} className="relative flex items-start gap-2 px-4 py-3 hover:bg-accent">
+            <div className="min-w-0 flex-1">
+              <Link
+                to={getRowHref(row)}
+                className="font-medium break-words outline-none after:absolute after:inset-0 focus-visible:after:ring-[3px] focus-visible:after:ring-ring focus-visible:after:ring-inset"
+              >
+                {formatDisplay(resource.display, row)}
+              </Link>
+              {subtitleFields.length > 0 && (
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm break-words text-muted-foreground">
+                  {subtitle(row).map(({ field, value }) => (
+                    <span key={field} className="min-w-0">
+                      {value}
+                    </span>
+                  ))}
+                </div>
               )}
-            >
-              <Card className="gap-1 px-4 py-3 hover:bg-accent">
-                <CardContent className="px-0">
-                  <div className="font-medium break-words">{formatDisplay(resource.display, row)}</div>
-                  {subtitleFields.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm break-words text-muted-foreground">
-                      {subtitle(row).map(({ field, value }) => (
-                        <span key={field} className="min-w-0">
-                          {value}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </Link>
+            </div>
+            {rowActions && <div className="relative -my-2 -mr-2">{rowActions(row)}</div>}
           </li>
         ))}
       </ul>
@@ -226,16 +257,17 @@ function useHorizontalOverflow() {
 }
 
 /** A fade over the edge of the table where more columns are out of view; decorative, the table still scrolls. */
-function ScrollHint({ side, visible }: { side: 'left' | 'right'; visible: boolean }) {
+function ScrollHint({ side, visible, className }: { side: 'left' | 'right'; visible: boolean; className?: string }) {
   return (
     <div
       aria-hidden
       data-slot="scroll-hint"
       data-side={side}
       className={cn(
-        'pointer-events-none absolute inset-y-0 z-10 w-10 from-background to-transparent transition-opacity',
+        'pointer-events-none absolute inset-y-0 z-30 w-10 from-card to-transparent transition-opacity',
         side === 'right' ? 'right-0 bg-linear-to-l' : 'left-0 bg-linear-to-r',
         visible ? 'opacity-100' : 'opacity-0',
+        className,
       )}
     />
   )

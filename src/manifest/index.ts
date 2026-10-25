@@ -74,7 +74,12 @@ export interface ResourceManifest {
     columns: ColumnManifest[]
     filters?: FilterManifest[]
   }
-  detail: { fields: string[]; related?: RelatedManifest[] }
+  detail: {
+    fields: string[]
+    /** A `format: badge` field shown next to the record name in the detail header instead of among the fields. */
+    status?: string
+    related?: RelatedManifest[]
+  }
   form: {
     /** Rows of fields shown side by side from `md`, and fieldsets for nested objects. */
     groups: FormGroup[]
@@ -154,6 +159,20 @@ export function formFieldPaths(resource: Resource): string[] {
   )
 }
 
+/**
+ * The detail fields by section card: top-level fields, nested objects (each its own card) and server-set metadata
+ * (`form.readOnly`). The header's `detail.status` field is left out.
+ */
+export function detailSections(resource: Resource): { main: string[]; objects: string[]; meta: string[] } {
+  const readOnly = resource.form.readOnly ?? []
+  const fields = resource.detail.fields.filter((field) => field !== resource.detail.status)
+  return {
+    main: fields.filter((field) => !readOnly.includes(field) && !objectFields(resource, field)),
+    objects: fields.filter((field) => !readOnly.includes(field) && objectFields(resource, field)),
+    meta: fields.filter((field) => readOnly.includes(field)),
+  }
+}
+
 export interface FieldDisplay {
   format: FieldFormat
   enum?: string
@@ -174,6 +193,9 @@ export function fieldFormat(resource: Resource, field: string): FieldDisplay {
   if (input?.input === 'select' && input.enum) return { format: 'enum', enum: input.enum }
   return { format: 'text' }
 }
+
+/** Numbers are right-aligned with tabular figures (docs/DESIGN.md). */
+export const isNumeric = (resource: Resource, field: string) => fieldFormat(resource, field).format === 'number'
 
 /** A value by dot path (`address.city`); undefined when any part is missing. */
 export function getPath(record: object, path: string): unknown {

@@ -82,7 +82,32 @@ test.describe('persons as writer', () => {
     await expect(page.getByText(`Anne ${lastName} was deleted.`)).toBeVisible()
 
     await page.getByRole('searchbox').fill(lastName)
-    await expect(page.getByText(`No results for “${lastName}”.`)).toBeVisible()
+    await expect(page.getByText(`Nothing matches “${lastName}”.`, { exact: false })).toBeVisible()
+  })
+
+  test('the row menu deletes a person after confirmation, and a person still in use is kept', async ({ page }) => {
+    const tag = `Row${unique()}`
+    await openAs(page, '/persons')
+    await createViaApi(page, 'Ida', tag)
+    const owner = await createViaApi(page, 'Ole', tag)
+    await callApi(page, 'POST', '/tasks', { title: `Task ${tag}`, priority: 'LOW', assigneeId: Number(owner.split('/').at(-1)) })
+      .then((task) => created.push(`/tasks/${task!.id}`))
+    await page.goto(`/persons?q=${tag}`)
+    // The menu is in the table's last column from md and beside each card below it.
+    await expect(page.getByRole('button', { name: /^Actions for / })).toHaveCount(2)
+
+    await page.getByRole('button', { name: `Actions for Ida ${tag}` }).click()
+    await page.getByRole('menuitem', { name: 'Delete' }).click()
+    await page.getByRole('alertdialog', { name: `Delete Ida ${tag}?` }).getByRole('button', { name: 'Delete' }).click()
+    await expect(page.getByText(`Ida ${tag} was deleted.`)).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Actions for / })).toHaveCount(1)
+
+    // Referenced by a task: 409 in-use, the row stays.
+    await page.getByRole('button', { name: `Actions for Ole ${tag}` }).click()
+    await page.getByRole('menuitem', { name: 'Delete' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Delete' }).click()
+    await expect(page.getByText(`Ole ${tag} is still used by other records and was not deleted.`)).toBeVisible()
+    await expect(page.getByRole('button', { name: `Actions for Ole ${tag}` })).toBeVisible()
   })
 
   test('create shows translated validation errors and saves nothing', async ({ page }) => {
@@ -311,6 +336,7 @@ test.describe('persons as writer', () => {
     await expectListParams(page, { q: tag, countryCode: 'PL', status: 'UNAVAILABLE' })
     await expect(table.getByRole('row')).toHaveCount(2)
     await expect(table).toContainText('Una')
+    await expect(page.getByRole('button', { name: 'Remove filter Status: Unavailable' })).toBeVisible()
 
     // The filters survive a reload.
     await page.reload()
@@ -329,10 +355,15 @@ test.describe('persons as writer', () => {
     await expect(table.getByRole('row')).toHaveCount(2)
     await expect(table).toContainText('Pia')
 
+    // A chip removes its filter.
+    await page.getByRole('button', { name: 'Remove filter Available on: Jun 15, 2026' }).click()
+    await expectListParams(page, { q: tag })
+
     // No match: the empty state says so and clears the filters.
+    await filters.getByLabel('Available on').fill('2026-06-15')
     await filters.getByRole('combobox', { name: 'Status' }).click()
     await page.getByRole('option', { name: 'Unavailable' }).click()
-    await expect(page.getByText('No records match the filters.')).toBeVisible()
+    await expect(page.getByText('No matching records')).toBeVisible()
     await page.getByRole('main').getByRole('button', { name: 'Clear filters' }).last().click()
     await expectListParams(page, { q: tag })
   })

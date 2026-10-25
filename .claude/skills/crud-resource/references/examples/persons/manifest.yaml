@@ -36,6 +36,9 @@
     detail:
       # A nested object (address) is shown as one labelled block of its sub-fields.
       fields: [firstName, lastName, email, birthDate, gender, status, availableFrom, availableTo, address]
+      # A format: badge field shown next to the record name in the header (not repeated among the fields).
+      # Section cards come from the fields: top-level fields, one card per nested object, form.readOnly as metadata.
+      status: status
       # Records of another resource that point to this one, as a card under the detail: up to `limit` records
       # filtered by `filter=<id>`, and a link to the filtered list. Shown only to users who can read that resource.
       related:

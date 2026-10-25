@@ -10,9 +10,11 @@ What you get without writing a screen:
 - sign-in with OIDC (Keycloak; Authorization Code + PKCE), roles from the token, actions hidden by role;
 - a responsive shell (sidebar from `lg`, collapsible to icons with Ctrl/⌘+B, a sheet menu below; breadcrumbs; a user
   menu with language and theme), light/dark theme, languages from the manifest (PL and EN included);
-- lists with search, sorting, paging and filters kept in the URL, table from `md` and cards below;
-- detail pages, create/edit forms validated with the contract's Zod schemas, server field errors on the fields,
-  stale-version reload, unsaved-changes guard, delete with confirmation, relations between resources;
+- lists with search, sorting, paging and filters kept in the URL (active filters as removable chips), table from `md`
+  with a sticky header and cards below, a row menu (view, edit, delete) for writers;
+- detail pages (status badge in the header, fields in section cards), create/edit forms in section cards validated
+  with the contract's Zod schemas, server field errors on the fields, stale-version reload, unsaved-changes guard,
+  delete with confirmation, relations between resources;
 - a calm, themable look: one file of design tokens (`src/styles/theme.css`, light and dark), Inter, rules in
   [docs/DESIGN.md](docs/DESIGN.md), and a component gallery at `/__gallery` in the dev server (no API or login needed);
 - unit tests (Vitest) for all of that, e2e tests (Playwright) for the shell and the gallery, CircleCI.

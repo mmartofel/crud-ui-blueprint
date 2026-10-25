@@ -3,6 +3,7 @@ import { useController, useWatch, type Control, type FieldValues, type Path } fr
 import { useTranslation } from 'react-i18next'
 import { CountrySelect } from '@/components/app/CountrySelect'
 import { RelationSelect } from '@/components/app/RelationSelect'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -37,8 +38,8 @@ export interface NumberLimits {
 }
 
 /**
- * All form fields of a resource, laid out by the manifest's `form.groups`: one column on mobile, a row from `md`.
- * A nested object's group is a fieldset; its fields are named by their path (`address.city`).
+ * All form fields of a resource as section cards, laid out by the manifest's `form.groups`: one column on mobile, a
+ * row from `md`. A nested object's group is a fieldset card; its fields are named by their path (`address.city`).
  */
 export function FormFields<T extends FieldValues, TOut extends FieldValues = T>({
   resource,
@@ -66,19 +67,34 @@ export function FormFields<T extends FieldValues, TOut extends FieldValues = T>(
     </div>
   )
 
+  // As on the detail page: the top-level rows in one "Details" card, then a titled card per nested object.
+  const rows = resource.form.groups.filter((group): group is string[] => !isObjectGroup(group))
+  const objects = resource.form.groups.filter(isObjectGroup)
+
   return (
-    <div className="flex flex-col gap-5">
-      {resource.form.groups.map((group) =>
-        isObjectGroup(group) ? (
-          <fieldset key={group.object} className="flex min-w-0 flex-col gap-5 rounded-lg border p-4">
-            <legend className="px-1 text-sm font-medium">{tDynamic(t, groupLabelKey(resource.key, group.object))}</legend>
-            {group.groups.map((fields) => row(fields.map((field) => `${group.object}.${field}`)))}
-          </fieldset>
-        ) : (
-          row(group)
-        ),
+    <>
+      {rows.length > 0 && (
+        <Card className="min-w-0">
+          <CardHeader>
+            <CardTitle>
+              <h2>{t('common.form.details')}</h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-5">{rows.map(row)}</CardContent>
+        </Card>
       )}
-    </div>
+      {objects.map((group) => (
+        // A fieldset styled as a card; the floated legend sits inside it like a card title.
+        <fieldset key={group.object} className="min-w-0 rounded-xl border bg-card py-6 text-card-foreground shadow-sm">
+          <legend className="float-left mb-6 w-full px-6 text-section-title">
+            {tDynamic(t, groupLabelKey(resource.key, group.object))}
+          </legend>
+          <div className="clear-both flex flex-col gap-5 px-6">
+            {group.groups.map((fields) => row(fields.map((field) => `${group.object}.${field}`)))}
+          </div>
+        </fieldset>
+      ))}
+    </>
   )
 }
 

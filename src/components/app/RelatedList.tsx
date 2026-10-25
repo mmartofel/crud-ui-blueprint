@@ -44,7 +44,7 @@ function RelatedList({ entry, id, parent }: { entry: RelatedManifest; id: number
   const title = tDynamic(t, `${entry.resource}.title`)
 
   return (
-    <Card className="mt-6">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2">
         <CardTitle>
           <h2>{query.data ? t('common.detail.related', { title, count: total }) : title}</h2>
@@ -66,7 +66,7 @@ function RelatedList({ entry, id, parent }: { entry: RelatedManifest; id: number
           onRetry={() => void query.refetch()}
           isEmpty={total === 0}
           loading={<Skeleton className="h-11 w-full" />}
-          empty={t('common.detail.noRelated')}
+          empty={{ title: t('common.detail.noRelated'), compact: true }}
         >
           <ul className="flex flex-col divide-y">
             {rows.map((row) => (

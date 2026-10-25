@@ -56,8 +56,28 @@ describe('DataTable', () => {
 
   it('renders mobile cards titled by the display template, with the subtitle columns below', () => {
     renderTable()
-    const card = screen.getAllByRole('link').find((link) => link.textContent?.includes('anna@example.com'))
+    const card = screen.getByRole('link', { name: 'Anna Nowak' }).closest('li')!
     expect(card).toHaveTextContent('Anna NowakUnavailableanna@example.com')
-    expect(card).toHaveAttribute('href', '/persons/7')
+    expect(within(card).getByRole('link')).toHaveAttribute('href', '/persons/7')
+  })
+
+  it('right-aligns number columns and adds the row actions to the table and each card', () => {
+    const tasks = fixtureResource('tasks')
+    render(
+      <MemoryRouter>
+        <DataTable
+          resource={{ ...tasks, list: { ...tasks.list, columns: [...tasks.list.columns, { field: 'estimateHours' }] } }}
+          rows={[{ id: 1, title: 'Report', done: false, estimateHours: 2.5 }]}
+          sort={{ field: 'dueDate', direction: 'asc' }}
+          onSortChange={vi.fn()}
+          getRowHref={(row) => `/tasks/${row.id}`}
+          rowActions={() => <button type="button">Actions</button>}
+        />
+      </MemoryRouter>,
+    )
+    const table = screen.getByRole('table')
+    expect(within(table).getByText('2.5').closest('td')).toHaveClass('text-right')
+    expect(within(table).getByRole('columnheader', { name: 'Actions' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Actions' })).toHaveLength(2)
   })
 })

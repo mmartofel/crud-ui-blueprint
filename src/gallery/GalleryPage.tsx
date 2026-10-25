@@ -1,34 +1,33 @@
 import { useState, type ReactNode } from 'react'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { FilterX, Pencil, Plus, SearchX, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { ApiError } from '@/api/fetcher'
-import { sourceOf } from '@/api/sources'
+import { sourceOf, type AnyRecord } from '@/api/sources'
 import { useRoles } from '@/auth'
 import { ConfirmDialog } from '@/components/app/ConfirmDialog'
 import { DataState } from '@/components/app/DataState'
-import { DetailList } from '@/components/app/DetailList'
+import { DetailSkeleton } from '@/components/app/DetailSkeleton'
+import { ResourceDetail } from '@/components/app/ResourceDetail'
 import { useDocumentTitle } from '@/components/app/useDocumentTitle'
 import { PageHeader } from '@/components/app/PageHeader'
-import { RelatedLists } from '@/components/app/RelatedList'
+import { FormSkeleton } from '@/components/app/form/FormSkeleton'
 import { ResourceForm } from '@/components/app/form/ResourceForm'
 import { DataTable } from '@/components/app/list/DataTable'
-import { ListFilters } from '@/components/app/list/ListFilters'
 import { ListSkeleton } from '@/components/app/list/ListSkeleton'
-import { Pagination } from '@/components/app/list/Pagination'
-import { SearchInput } from '@/components/app/list/SearchInput'
+import { ResourceList } from '@/components/app/list/ResourceList'
 import { useListState } from '@/components/app/list/listState'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { tDynamic } from '@/i18n/dynamic'
 import { canWrite, formatDisplay, type ResourceKey } from '@/manifest'
 import { CreateTaskBody } from '@/test/fixtures/api/tasks.zod'
 import { UpdatePersonBody } from '@/test/fixtures/api/persons.zod'
-import { persons, tasks } from './data'
+import { persons, removeRecord, tasks } from './data'
 import { personsResource, tasksResource } from './register'
 import { useGalleryRole, type GalleryRole } from './role'
 
@@ -236,108 +235,69 @@ const personFilterValues = { status: ['AVAILABLE', 'UNAVAILABLE'] }
 
 function ListSection() {
   const { t } = useTranslation()
-  const roles = useRoles()
-  const { state, apiParams, setPage, setSize, setSort, setQuery, setFilter, clearFilters } = useListState(personsResource)
+  const queryClient = useQueryClient()
+  const list = useListState(personsResource)
   const source = sourceOf('persons' as ResourceKey)
   const query = useQuery({
-    queryKey: source.listKey(apiParams),
-    queryFn: () => source.list(apiParams),
+    queryKey: source.listKey(list.apiParams),
+    queryFn: () => source.list(list.apiParams),
     placeholderData: keepPreviousData,
   })
-  const total = query.data?.page?.totalElements ?? 0
   return (
-    <Section id="list" note="Table from md, cards below it. Search, filters, sorting and paging work on the sample data.">
-      <PageHeader
-        title={tDynamic(t, 'persons.title')}
-        actions={
-          canWrite(roles, personsResource) && (
-            <Button>
-              <Plus aria-hidden />
-              {t('common.actions.new')}
-            </Button>
-          )
-        }
-      />
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-0 flex-1 md:flex-none md:basis-full">
-          <SearchInput value={state.q} onChange={setQuery} />
-        </div>
-        <ListFilters
+    <Section
+      id="list"
+      note="Table from md, cards below it. Search, filters (with removable chips), sorting, paging and the row menu's delete work on the sample data."
+    >
+      <div>
+        <ResourceList
           resource={personsResource}
-          values={state.filters}
-          onChange={setFilter}
-          onClear={clearFilters}
-          enumValues={personFilterValues}
+          list={list}
+          query={query}
+          filterValues={personFilterValues}
+          remove={async (person: AnyRecord) => removeRecord(persons, person.id)}
+          onDeleted={() => void queryClient.invalidateQueries({ queryKey: ['gallery', 'persons'] })}
         />
       </div>
-      <DataState
-        isLoading={query.isPending}
-        isError={query.isError}
-        isEmpty={total === 0}
-        loading={<ListSkeleton />}
-        empty={state.q ? t('common.list.noResults', { q: state.q }) : t('common.list.noFilterResults')}
-      >
-        <div className="flex flex-col gap-4">
-          <DataTable
-            resource={personsResource}
-            rows={query.data?.content ?? []}
-            sort={state.sort}
-            onSortChange={setSort}
-            getRowHref={(person) => `${personsResource.route}/${person.id}`}
-          />
-          <Pagination
-            page={state.page}
-            size={state.size}
-            pageSizes={personsResource.list.pageSizes}
-            totalElements={total}
-            totalPages={Math.ceil(total / state.size)}
-            onPageChange={setPage}
-            onSizeChange={setSize}
-          />
-        </div>
-      </DataState>
-      <h3 className="text-sm font-medium">{tDynamic(t, 'tasks.title')}: relations and boolean badges</h3>
-      <DataTable
-        resource={tasksResource}
-        rows={tasks.slice(0, 5)}
-        sort={{ field: 'dueDate', direction: 'asc' }}
-        onSortChange={() => {}}
-        getRowHref={(task) => `${tasksResource.route}/${task.id}`}
-      />
+      <h3 className="text-sm font-medium">{tDynamic(t, 'tasks.title')}: relations, boolean badges, numbers</h3>
+      <Card className="gap-0 overflow-hidden py-0">
+        <DataTable
+          resource={tasksResource}
+          rows={tasks.slice(0, 5)}
+          sort={{ field: 'dueDate', direction: 'asc' }}
+          onSortChange={() => {}}
+          getRowHref={(task) => `${tasksResource.route}/${task.id}`}
+        />
+      </Card>
     </Section>
   )
 }
 
-function DetailSection() {
-  const { t } = useTranslation()
-  const roles = useRoles()
-  const person = persons[0]
+/** A gallery detail: the record from the in-memory source; its delete fails as "still in use" (409). */
+function GalleryDetail({ resource, record }: { resource: typeof personsResource; record: AnyRecord }) {
+  const source = sourceOf(resource.key)
+  // Rendered at once (initialData), so the gallery's document title, set after its children, still wins.
+  const query = useQuery({ queryKey: source.getKey(record.id), queryFn: () => source.get(record.id), initialData: record })
   return (
-    <Section id="detail" note="Header with actions (writer only), the fields in a card, the related list.">
+    <ResourceDetail
+      resource={resource}
+      query={query}
+      remove={() => Promise.reject(new ApiError(409, 'Conflict', undefined, [{ field: 'id', code: 'in-use', message: 'in use' }]))}
+      onDeleted={() => {}}
+    />
+  )
+}
+
+function DetailSection() {
+  return (
+    <Section
+      id="detail"
+      note="Header with the status badge and actions (writer only), the fields in section cards (nested objects and metadata in their own), the related list. Delete here fails as still in use."
+    >
       <div>
-        <PageHeader
-          title={formatDisplay(personsResource.display, person)}
-          actions={
-            canWrite(roles, personsResource) && (
-              <>
-                <Button variant="outline">
-                  <Pencil aria-hidden />
-                  {t('common.actions.edit')}
-                </Button>
-                <Button variant="destructive">
-                  <Trash2 aria-hidden />
-                  {t('common.actions.delete')}
-                </Button>
-              </>
-            )
-          }
-        />
-        <Card>
-          <CardContent>
-            <DetailList resource={personsResource} record={person} />
-          </CardContent>
-        </Card>
-        <RelatedLists resource={personsResource} id={person.id} />
+        <GalleryDetail resource={personsResource} record={persons[0]} />
+      </div>
+      <div>
+        <GalleryDetail resource={tasksResource} record={tasks[0]} />
       </div>
     </Section>
   )
@@ -425,41 +385,83 @@ function FormSection() {
 
 function StatesSection() {
   const { t } = useTranslation()
+  const roles = useRoles()
   const [retries, setRetries] = useState(0)
+  const state = (title: string, children: ReactNode, note?: string) => (
+    <div className="flex min-w-0 flex-col gap-2">
+      <h3 className="text-sm font-medium">
+        {title}
+        {note && <span className="font-normal text-muted-foreground"> · {note}</span>}
+      </h3>
+      {children}
+    </div>
+  )
+  const inCard = (children: ReactNode) => <Card className="gap-0 overflow-hidden py-0">{children}</Card>
   return (
-    <Section id="states" note="Every data view has four states: loading, empty, error with retry, data.">
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <h3>Loading</h3>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataState isLoading isError={false} loading={<ListSkeleton rows={3} />} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <h3>Empty</h3>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataState isLoading={false} isError={false} isEmpty empty={tDynamic(t, 'persons.empty')} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <h3>Error</h3>
-            </CardTitle>
-            {retries > 0 && <CardDescription>Retried {retries}×</CardDescription>}
-          </CardHeader>
-          <CardContent>
-            <DataState isLoading={false} isError onRetry={() => setRetries((n) => n + 1)} />
-          </CardContent>
-        </Card>
+    <Section id="states" note="Every data view has four states: loading (skeletons shaped like the page), empty, error with retry, data.">
+      <div className="grid gap-6 lg:grid-cols-2">
+        {state('Loading: list', inCard(<DataState isLoading isError={false} loading={<ListSkeleton rows={3} />} />))}
+        {state(
+          'Empty: no records',
+          inCard(
+            <DataState
+              isLoading={false}
+              isError={false}
+              isEmpty
+              empty={{
+                title: tDynamic(t, 'persons.empty'),
+                description: t('common.states.emptyText'),
+                action: canWrite(roles, personsResource) && (
+                  <Button>
+                    <Plus aria-hidden />
+                    {t('common.actions.new')}
+                  </Button>
+                ),
+              }}
+            />,
+          ),
+          '"New" for writers only',
+        )}
+        {state(
+          'Empty: filters',
+          inCard(
+            <DataState
+              isLoading={false}
+              isError={false}
+              isEmpty
+              empty={{
+                icon: FilterX,
+                title: t('common.list.noFilterResultsTitle'),
+                description: t('common.list.noFilterResultsText'),
+                action: <Button variant="outline">{t('common.list.clearFilters')}</Button>,
+              }}
+            />,
+          ),
+        )}
+        {state(
+          'Empty: search',
+          inCard(
+            <DataState
+              isLoading={false}
+              isError={false}
+              isEmpty
+              empty={{
+                icon: SearchX,
+                title: t('common.list.noResultsTitle'),
+                description: t('common.list.noResultsText', { q: 'Kowalsky' }),
+                action: <Button variant="outline">{t('common.list.clearSearch')}</Button>,
+              }}
+            />,
+          ),
+        )}
+        {state(
+          'Error',
+          inCard(<DataState isLoading={false} isError onRetry={() => setRetries((n) => n + 1)} />),
+          retries > 0 ? `retried ${retries}×` : undefined,
+        )}
+        {state('Empty: related list', inCard(<div className="p-6"><DataState isLoading={false} isError={false} isEmpty empty={{ title: t('common.detail.noRelated'), compact: true }} /></div>), 'compact empty')}
+        {state('Loading: detail', <DetailSkeleton fields={4} />)}
+        {state('Loading: form', <FormSkeleton fields={3} />)}
       </div>
     </Section>
   )

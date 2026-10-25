@@ -115,11 +115,13 @@ A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never han
   - Lists: table from `md`, cards below `md` (titled by the manifest's `display`; columns marked `mobile: subtitle` below it).
     A table wider than the screen scrolls inside its own frame, never the page, with a fade on the edge that has more
     columns; order manifest columns by importance. List filters are a row from `md` and a bottom sheet below it.
-  - Forms: one column on mobile, the manifest's groups side by side from `md`.
+  - Forms: one column on mobile, the manifest's groups side by side from `md`; Save/Cancel stick to the bottom below `md`.
   - Touch targets at least 44px; no horizontal page scroll at any width.
 - List state (`page`, `size`, `sort`, `q` and the manifest's `list.filters`) lives in the URL search params so it
   survives reload and back navigation. Search input is debounced (300 ms). Filter values the contract rejects are dropped.
-- Every data view has four states: loading (skeleton), empty, error (with retry), data.
+- Every data view has four states: loading (skeleton shaped like the page), empty, error (with retry), data.
+  List and detail pages are `ResourceList` / `ResourceDetail`; their layout (cards, toolbar, chips, row menu, section
+  cards) is in `docs/DESIGN.md` "Resource screens".
 - Mutations: disable the submit button while pending, toast on success, map `errors[]` to form
   fields with `setError`, show other errors in a form-level alert. On a stale-version 409 show a
   dialog offering to reload the record.

@@ -11,6 +11,7 @@ import { CreatePersonBody, UpdatePersonBody } from '@/api/generated/endpoints/pe
 import { PersonCreateRequestGender, PersonCreateRequestStatus, type PersonResponse } from '@/api/generated/model'
 import { DataState } from '@/components/app/DataState'
 import { errorPageFor } from '@/components/app/errorPageFor'
+import { FormSkeleton } from '@/components/app/form/FormSkeleton'
 import { ResourceForm } from '@/components/app/form/ResourceForm'
 import { NotFoundPage } from '@/components/app/NotFoundPage'
 import { PageHeader } from '@/components/app/PageHeader'
@@ -65,7 +66,12 @@ function PersonEdit({ id }: { id: number }) {
   const onSaved = useOnSaved()
   return (
     errorPageFor(query.error) ?? (
-      <DataState isLoading={query.isPending} isError={query.isError} onRetry={() => void query.refetch()}>
+      <DataState
+        isLoading={query.isPending}
+        isError={query.isError}
+        onRetry={() => void query.refetch()}
+        loading={<FormSkeleton />}
+      >
         {query.data && (
           <>
             <PageHeader title={t('persons.editTitle', { name: formatDisplay(persons.display, query.data) })} />

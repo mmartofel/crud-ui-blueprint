@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { CircleAlert, Inbox, RotateCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState, type EmptyStateProps } from './EmptyState'
 
 interface DataStateProps {
   isLoading: boolean
@@ -12,8 +12,8 @@ interface DataStateProps {
   onRetry?: () => void
   /** Custom skeleton matching the data view; defaults to a few rows. */
   loading?: ReactNode
-  /** Custom empty message; defaults to `common.states.empty`. */
-  empty?: ReactNode
+  /** The empty state: a short message, or an `EmptyState`'s icon, title, text and action. Defaults to `common.states.empty`. */
+  empty?: string | Partial<EmptyStateProps>
   children?: ReactNode
 }
 
@@ -38,29 +38,28 @@ export function DataState({ isLoading, isError, isEmpty, onRetry, loading, empty
 
   if (isError) {
     return (
-      <Alert variant="destructive">
-        <CircleAlert aria-hidden />
-        <AlertTitle>{t('common.states.errorTitle')}</AlertTitle>
-        <AlertDescription>
-          <p>{t('common.states.errorText')}</p>
-          {onRetry && (
-            <Button variant="outline" size="sm" className="mt-2" onClick={onRetry}>
-              <RotateCw aria-hidden />
-              {t('common.states.retry')}
-            </Button>
-          )}
-        </AlertDescription>
-      </Alert>
+      <div role="alert">
+        <EmptyState
+          icon={CircleAlert}
+          tone="destructive"
+          title={t('common.states.errorTitle')}
+          description={t('common.states.errorText')}
+          action={
+            onRetry && (
+              <Button variant="outline" onClick={onRetry}>
+                <RotateCw aria-hidden />
+                {t('common.states.retry')}
+              </Button>
+            )
+          }
+        />
+      </div>
     )
   }
 
   if (isEmpty) {
-    return (
-      <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/30 p-10 text-center text-muted-foreground">
-        <Inbox className="size-8" aria-hidden />
-        <div>{empty ?? t('common.states.empty')}</div>
-      </div>
-    )
+    const props = typeof empty === 'string' ? { title: empty } : empty
+    return <EmptyState icon={Inbox} {...props} title={props?.title ?? t('common.states.empty')} />
   }
 
   return children

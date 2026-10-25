@@ -14,7 +14,10 @@ function keys(value: unknown, prefix = ''): string[] {
 
 describe('locale files', () => {
   it('have the same keys in pl and en', () => {
-    expect(keys(resources.pl.translation).sort()).toEqual(keys(resources.en.translation).sort())
+    // Plural forms differ by language (en: one/other, pl: one/few/many/other): compare the base key.
+    const base = (lang: 'pl' | 'en') =>
+      [...new Set(keys(resources[lang].translation).map((key) => key.replace(/_(zero|one|two|few|many|other)$/, '')))].sort()
+    expect(base('pl')).toEqual(base('en'))
   })
 
   it('have no empty translations', () => {

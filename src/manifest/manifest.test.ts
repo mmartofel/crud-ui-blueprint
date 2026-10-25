@@ -1,4 +1,4 @@
-import { app, canRead, canWrite, fieldFormat, formatDisplay, resources } from '@/manifest'
+import { app, canRead, canWrite, detailSections, fieldFormat, formatDisplay, isNumeric, resources } from '@/manifest'
 import { fixtureResource, fixtureResources } from '@/test/fixtures'
 
 describe('manifest', () => {
@@ -43,5 +43,24 @@ describe('manifest helpers', () => {
   it('fills the display template and tolerates missing values', () => {
     expect(formatDisplay(persons.display, { firstName: 'Anna', lastName: 'Nowak' })).toBe('Anna Nowak')
     expect(formatDisplay(persons.display, { lastName: 'Nowak' })).toBe('Nowak')
+  })
+
+  it('splits the detail fields into main, nested-object and metadata sections without the header status', () => {
+    expect(detailSections(persons)).toEqual({
+      main: ['firstName', 'lastName', 'email', 'birthDate', 'gender', 'availableFrom', 'availableTo'],
+      objects: ['address'],
+      meta: [],
+    })
+    expect(detailSections(fixtureResource('tasks'))).toEqual({
+      main: ['title', 'description', 'priority', 'estimateHours', 'dueDate', 'assignee'],
+      objects: [],
+      meta: ['createdAt', 'updatedAt'],
+    })
+  })
+
+  it('marks number fields as numeric', () => {
+    const tasks = fixtureResource('tasks')
+    expect(isNumeric(tasks, 'estimateHours')).toBe(true)
+    expect(isNumeric(tasks, 'dueDate')).toBe(false)
   })
 })

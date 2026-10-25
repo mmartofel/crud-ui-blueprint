@@ -50,7 +50,8 @@
     "empty": "Nic tu jeszcze nie ma.",
     "errorTitle": "Nie udało się wczytać danych",
     "errorText": "Serwer nie odpowiedział zgodnie z oczekiwaniami.",
-    "retry": "Ponów"
+    "retry": "Ponów",
+    "emptyText": "Rekordy pojawią się tutaj po dodaniu."
   },
   "actions": {
     "cancel": "Anuluj",
@@ -61,7 +62,9 @@
     "save": "Zapisz",
     "saving": "Zapisywanie…",
     "back": "Wstecz",
-    "backToList": "Wróć do listy"
+    "backToList": "Wróć do listy",
+    "view": "Pokaż",
+    "more": "Akcje: {{name}}"
   },
   "validation": {
     "required": "To pole jest wymagane.",
@@ -100,7 +103,18 @@
     "clearFilters": "Wyczyść filtry",
     "noFilterResults": "Brak rekordów spełniających filtry.",
     "filterAny": "Dowolny",
-    "closeFilters": "Zamknij filtry"
+    "closeFilters": "Zamknij filtry",
+    "count_one": "{{formatted}} rekord",
+    "count_few": "{{formatted}} rekordy",
+    "count_many": "{{formatted}} rekordów",
+    "count_other": "{{formatted}} rekordu",
+    "actions": "Akcje",
+    "removeFilter": "Usuń filtr {{label}}: {{value}}",
+    "activeFilters": "Aktywne filtry",
+    "noResultsTitle": "Brak wyników",
+    "noResultsText": "Nic nie pasuje do „{{q}}”. Sprawdź pisownię lub użyj innych słów.",
+    "noFilterResultsTitle": "Brak pasujących rekordów",
+    "noFilterResultsText": "Zmień lub wyczyść filtry, aby zobaczyć więcej rekordów."
   },
   "form": {
     "required": "wymagane",
@@ -121,7 +135,9 @@
     "searchRecords": "Szukaj…",
     "noRecords": "Nic nie znaleziono.",
     "loadingRecords": "Wczytywanie…",
-    "unknownRecord": "Nieznany rekord"
+    "unknownRecord": "Nieznany rekord",
+    "details": "Szczegóły",
+    "requiredHint": "Pola oznaczone * są wymagane."
   },
   "toast": {
     "created": "Utworzono: {{name}}.",
@@ -138,7 +154,9 @@
     "empty": "Nie podano",
     "related": "{{title}} ({{count}})",
     "showAll": "Pokaż wszystkie",
-    "noRelated": "Jeszcze brak."
+    "noRelated": "Jeszcze brak.",
+    "details": "Szczegóły",
+    "metadata": "Informacje o rekordzie"
   },
   "home": {
     "emptyTitle": "Brak zasobów",

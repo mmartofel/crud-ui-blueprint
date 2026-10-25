@@ -7,11 +7,11 @@ import { toast } from 'sonner'
 import type { z } from 'zod'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { fieldLabelKey, tDynamic } from '@/i18n/dynamic'
 import { formatDisplay, formFieldPaths, getPath, type Resource } from '@/manifest'
 import { renderFieldValue } from '../formatValue'
 import { ConfirmDialog } from '../ConfirmDialog'
+import { SectionCard } from '../SectionCard'
 import { applyApiError, retranslateServerError } from './applyApiError'
 import { FormFields } from './FormFields'
 import { defaultValue, formResolver, isRequired, numberLimits, type NotBeforeRule } from './formResolver'
@@ -177,26 +177,32 @@ export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.
   }
 
   return (
-    <Card>
-      <CardContent>
-        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
-          {formError && (
-            <Alert variant="destructive">
-              <CircleAlert aria-hidden />
-              <AlertTitle>{t('common.form.errorTitle')}</AlertTitle>
-              <AlertDescription>{formError}</AlertDescription>
-            </Alert>
-          )}
-          <FormFields
-            resource={resource}
-            control={form.control}
-            required={required}
-            enumValues={enumValues}
-            numberLimits={limits}
-            relationLabels={relationLabels}
-          />
-          {record && resource.form.readOnly && (
-            <dl className="grid gap-x-8 gap-y-3 border-t pt-4 text-sm sm:grid-cols-2">
+    <>
+      {/* Below md a focused field scrolls clear of the sticky action bar (scroll margin). */}
+      <form
+        noValidate
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-6 max-md:**:scroll-mb-24"
+      >
+        {required.length > 0 && <p className="-mb-2 text-caption text-muted-foreground">{t('common.form.requiredHint')}</p>}
+        {formError && (
+          <Alert variant="destructive">
+            <CircleAlert aria-hidden />
+            <AlertTitle>{t('common.form.errorTitle')}</AlertTitle>
+            <AlertDescription>{formError}</AlertDescription>
+          </Alert>
+        )}
+        <FormFields
+          resource={resource}
+          control={form.control}
+          required={required}
+          enumValues={enumValues}
+          numberLimits={limits}
+          relationLabels={relationLabels}
+        />
+        {record && resource.form.readOnly && (
+          <SectionCard title={t('common.detail.metadata')}>
+            <dl className="grid gap-x-8 gap-y-4 text-sm sm:grid-cols-2">
               {resource.form.readOnly.map((field) => (
                 <div key={field} className="min-w-0">
                   <dt className="text-muted-foreground">{tDynamic(t, fieldLabelKey(resource.key, field))}</dt>
@@ -206,17 +212,18 @@ export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.
                 </div>
               ))}
             </dl>
-          )}
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <Button asChild variant="outline">
-              <Link to={cancelHref}>{t('common.actions.cancel')}</Link>
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? t('common.actions.saving') : t('common.actions.save')}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
+          </SectionCard>
+        )}
+        {/* Below md the actions stick to the bottom of the screen, full width, so Save is always in reach. */}
+        <div className="sticky bottom-0 z-10 -mx-4 -mb-6 grid grid-cols-2 gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur-sm md:static md:mx-0 md:mb-0 md:flex md:justify-end md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+          <Button asChild variant="outline">
+            <Link to={cancelHref}>{t('common.actions.cancel')}</Link>
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? t('common.actions.saving') : t('common.actions.save')}
+          </Button>
+        </div>
+      </form>
       <UnsavedChangesGuard when={isDirty && savedId === undefined} />
       <ConfirmDialog
         open={staleOpen}
@@ -226,6 +233,6 @@ export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.
         confirmLabel={t('common.form.reload')}
         onConfirm={() => void reloadLatest()}
       />
-    </Card>
+    </>
   )
 }

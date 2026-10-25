@@ -30,6 +30,7 @@
 
     detail:
       fields: [title, description, priority, done, estimateHours, dueDate, assignee, createdAt, updatedAt]
+      status: done
 
     form:
       groups:

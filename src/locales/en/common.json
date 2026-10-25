@@ -50,7 +50,8 @@
     "empty": "Nothing here yet.",
     "errorTitle": "Could not load data",
     "errorText": "The server did not respond as expected.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "emptyText": "Records will appear here once they are added."
   },
   "actions": {
     "cancel": "Cancel",
@@ -61,7 +62,9 @@
     "save": "Save",
     "saving": "Saving…",
     "back": "Back",
-    "backToList": "Back to list"
+    "backToList": "Back to list",
+    "view": "View",
+    "more": "Actions for {{name}}"
   },
   "validation": {
     "required": "This field is required.",
@@ -100,7 +103,16 @@
     "clearFilters": "Clear filters",
     "noFilterResults": "No records match the filters.",
     "filterAny": "Any",
-    "closeFilters": "Close filters"
+    "closeFilters": "Close filters",
+    "count_one": "{{formatted}} record",
+    "count_other": "{{formatted}} records",
+    "actions": "Actions",
+    "removeFilter": "Remove filter {{label}}: {{value}}",
+    "activeFilters": "Active filters",
+    "noResultsTitle": "No results",
+    "noResultsText": "Nothing matches “{{q}}”. Check the spelling or try other words.",
+    "noFilterResultsTitle": "No matching records",
+    "noFilterResultsText": "Change or clear the filters to see more records."
   },
   "form": {
     "required": "required",
@@ -121,7 +133,9 @@
     "searchRecords": "Search…",
     "noRecords": "Nothing found.",
     "loadingRecords": "Loading…",
-    "unknownRecord": "Unknown record"
+    "unknownRecord": "Unknown record",
+    "details": "Details",
+    "requiredHint": "Fields marked * are required."
   },
   "toast": {
     "created": "{{name}} was created.",
@@ -138,7 +152,9 @@
     "empty": "Not provided",
     "related": "{{title}} ({{count}})",
     "showAll": "Show all",
-    "noRelated": "None yet."
+    "noRelated": "None yet.",
+    "details": "Details",
+    "metadata": "Record information"
   },
   "home": {
     "emptyTitle": "No resources yet",

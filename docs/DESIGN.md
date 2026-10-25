@@ -98,6 +98,31 @@ Dialog titles use `text-section-title`.
 - Menu buttons are 44 px high, also as icons, so the sidebar works on touch screens from `lg` too; the sheet's open
   and close buttons and the breadcrumb links are 44 px wherever they are the touch path (below `lg` / `md`).
 
+## Resource screens
+Built by the generic components from the manifest; a feature folder only passes the generated hooks. The gallery shows
+each one with the persons and tasks fixtures.
+
+- **List** (`ResourceList`): the page header with New (writers), then one card. Its toolbar (bottom border) holds the
+  search, the record count (from `md`), the filters (a row from `md`, a sheet below) and the active filters as
+  removable chips ("Status: Available ×", `bg-secondary`, `rounded-full`). Below it the table (from `md`) or a
+  divided list of card rows, then paging in the card's footer. The table fills the card edge to edge; its first and
+  last cells line up with the card padding. Its frame is at most the viewport height, scrolls both ways and keeps
+  the header (`text-muted-foreground`, an inset hairline) sticky. Rows highlight in `accent/60` on hover. Number
+  columns (`fieldFormat` `number`) are right-aligned with tabular figures. Writers get a row menu (`…`, the last
+  column; beside each card below `md`): View, Edit, then Delete in `destructive` after a separator.
+- **Detail** (`ResourceDetail`): back link, the record's name (`h1`) with its `detail.status` badge, Edit (`outline`)
+  and Delete (`destructive`). The fields come in section cards with an `h2` title: "Details" for the top-level
+  fields, one card per nested object, and "Record information" for `form.readOnly` fields, in a narrow column
+  beside the others from `lg`. Related lists follow in their own cards, `gap-6` throughout.
+- **Form** (`ResourceForm`): a caption "Fields marked * are required", then the same section cards ("Details", one
+  `fieldset` card per nested object, its legend styled as the card title), the read-only metadata card when editing,
+  and the actions. Below `md` the actions are a bar stuck to the bottom of the screen (`bg-background/95`, top border,
+  Cancel and Save side by side); from `md` they sit right-aligned after the cards.
+- **States** (`DataState`, `EmptyState`): empty and error states centre an icon in a soft circle (`bg-muted`;
+  `bg-destructive/12` for errors), a `text-section-title` title, one muted line and the next step: New for writers on
+  an empty list, Clear filters, Clear search, Retry. A related list's empty state is `compact`. Skeletons have the
+  shape of the real page (`ListSkeleton` in the list card, `DetailSkeleton`, `FormSkeleton`).
+
 ## Motion
 Motion only answers an action: a dialog, sheet, menu or toast opening or closing (`tw-animate-css` classes from shadcn,
 150-300 ms). No entrance animations on page load, and no hover transitions beyond colour. Anything that moves must
@@ -107,14 +132,16 @@ stop under `prefers-reduced-motion` (`motion-reduce:` variants; shadcn component
 ## Status colours
 - A status is a soft badge (`<Badge variant="success|warning|info|destructive">`): a 12% tint with the colour as text.
   It always carries a text label, never colour alone.
-- The manifest chooses the variant per value (`format: badge`, `badge: { VALUE: variant }`). Use `success` for a
+- The manifest chooses the variant per value (`format: badge`, `badge: { VALUE: variant }`); `detail.status` names
+  the badge field shown beside the record's name in the detail header. Use `success` for a
   positive or done state, `warning` for attention, `info` for neutral information, `destructive` for a negative or
   blocking state, and `secondary`/`outline` for neutral values (for example "Unavailable", "Low").
 - Errors in forms and data views use `destructive` text with an icon (`Alert variant="destructive"`).
 
 ## Icons
-lucide-react, 16 px (`size-4`) in buttons, menus and tables, 12 px in badges, 32 px in empty states. Icons sit next to a
-text label. An icon-only button needs an `aria-label`. Decorative icons get `aria-hidden`.
+lucide-react, 16 px (`size-4`) in buttons, menus and tables, 12 px in badges, 24 px in the soft circle of empty and
+error states. Icons sit next to a text label. An icon-only button needs an `aria-label`. Decorative icons get
+`aria-hidden`.
 
 ## Do and don't
 | Do | Don't |

@@ -66,8 +66,8 @@ Example: a resource `orders` with API tag `Orders`. Steps 1–3 come before any 
    | File | What it wires |
    |---|---|
    | `routes.tsx` | lazy routes; `RequireRole` with `permissions.read` around everything, `permissions.write` around `new` and `:id/edit` |
-   | `PersonsListPage.tsx` | `useListState(resource, List<Resource>sQueryParams)` → generated list hook (`keepPreviousData`) → `SearchInput`, `ListFilters` (with `enumValues` for select filters), `DataTable`, `Pagination` inside `DataState` (the empty state with filters offers "Clear filters"); `clampPage` effect; New button if `canWrite` |
-   | `PersonDetailPage.tsx` | `useIdParam` (bad id → 404), `errorPageFor` (403/404), `DetailList`, Edit/Delete if `canWrite`, `ConfirmDialog` naming the record, cache update and toast, a 404 on delete counts as success |
+   | `PersonsListPage.tsx` | `useListState(resource, List<Resource>sQueryParams)` → generated list hook (`keepPreviousData`) → `ResourceList` (with `filterValues` for select filters, `remove` and `onDeleted` for the row menu's delete) |
+   | `PersonDetailPage.tsx` | `useIdParam` (bad id → 404) → generated get hook → `ResourceDetail` (with `remove` and `onDeleted`) |
    | `PersonFormPage.tsx` | create and edit pages around `ResourceForm`; edit uses `UpdateBody.omit({ version: true })` and sends `version` from `ResourceForm` |
 5. **Router.** Spread `ordersRoutes` into the root children in `src/router.tsx`, before the `*` route.
 6. **Tests.** Copy the relevant cases from `references/examples/persons/persons.spec.ts`:
@@ -87,12 +87,13 @@ Example: a resource `orders` with API tag `Orders`. Steps 1–3 come before any 
 
 | Need | Use |
 |---|---|
+| List page, detail page | `list/ResourceList`, `components/app/ResourceDetail` |
 | Page title + actions | `components/app/PageHeader` (also sets `document.title`) |
-| Loading / empty / error with retry | `components/app/DataState`, `list/ListSkeleton` |
+| Loading / empty / error with retry | `components/app/DataState` with `EmptyState`, `list/ListSkeleton`, `DetailSkeleton`, `form/FormSkeleton` |
 | 403/404 from a query error | `components/app/errorPageFor` |
 | URL list state, back-to-list link | `list/listState` (`useListState`, `useListHref`) |
 | Search, filters, table/cards, paging | `list/SearchInput`, `list/ListFilters`, `list/DataTable`, `list/Pagination` |
-| Detail fields | `components/app/DetailList` (formatting via `formatValue`: `formatFieldValue` text, `renderFieldValue` with badges) |
+| Detail fields | `components/app/DetailSections` (formatting via `formatValue`: `formatFieldValue` text, `renderFieldValue` with badges) |
 | Country picker | `components/app/CountrySelect` (codes in `lib/countries`, names from `Intl.DisplayNames`) |
 | Relation picker, related records | `components/app/RelationSelect`, `components/app/RelatedList` (`RelatedLists`), both via `api/sources` |
 | Delete failure toast (`in-use`) | `toastDeleteError` from `components/app/deleteError` |
@@ -185,6 +186,12 @@ Known gaps, left as is:
 - **Template (step 10 review):** buttons are 44px below `md` and 36px from `md`, so at 768-1023 px (sheet menu, touch
   devices) the header buttons are 36px. It meets the written rule ("touch targets on mobile"); kept as a decision.
   Since D2 the sheet's open and close buttons are 44px up to `lg`; other buttons keep the rule.
+- **Open from the D3 (resource screens) review:**
+  - the list table's frame is capped at the viewport height (for the sticky header), so with 20+ rows the table
+    scrolls inside its card before the page does; kept as the documented design;
+  - the gallery shows two forms at once, so react-router warns "A router only supports one blocker at a time" on
+    list changes there (gallery only; the app has one form per route);
+  - the checkbox itself is 16 px; its label fills the 44 px row and toggles it (unchanged from before D3).
 - **Open from the D2 (app shell) review:**
   - on very wide screens (1920) the breadcrumbs start at the header's left padding, not at the centred content
     column's edge;

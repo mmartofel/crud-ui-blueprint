@@ -30,9 +30,9 @@ no `\b` and skips them silently; use `perl -pe 's/\bPersonDetail\b/OrderDetail/g
 | File | What it wires |
 |---|---|
 | `routes.tsx` | Lazy routes under `resource.route`. `RequireRole` with `permissions.read` around everything, `permissions.write` around `new` and `:id/edit`. |
-| `<Resource>sListPage.tsx` | `useListState(resource, List<Resource>sQueryParams)` (the generated query schema validates filter values from the URL) → generated list hook with `apiParams` and `placeholderData: keepPreviousData` → `SearchInput` and `ListFilters` (`values`, `setFilter`, `clearFilters`, `enumValues` for select filters from `List<Resource>s<Param>`), `DataTable` (`getRowHref`), `Pagination` inside `DataState` (loading `ListSkeleton`; empty text with filters + "Clear filters", with `q`, or none). `clampPage(totalPages)` effect. New button only if `canWrite`. |
-| `<Resource>DetailPage.tsx` | `useIdParam` (bad id → `NotFoundPage`), `errorPageFor(query.error)` for 403/404, `DataState`, back link `useListHref`, `PageHeader` titled by `formatDisplay(resource.display, record)`, `DetailList`. Edit/Delete only if `canWrite`; `ConfirmDialog` naming the record; on success remove the detail query, invalidate lists, toast, navigate to the list; a 404 on delete counts as success; a 409 `in-use` adds `common.validation.in-use` to the failure toast. |
-| `<Resource>FormPage.tsx` | Create and edit pages around `ResourceForm`. `useOnSaved` sets the detail cache and invalidates lists. Edit uses `UpdateBody.omit({ version: true })` as schema and sends `version` from `ResourceForm`'s `save(data, version)`; `reload` refetches for the stale-version dialog. `enumValues` maps each enum field to the generated enum's values. |
+| `<Resource>sListPage.tsx` | `useListState(resource, List<Resource>sQueryParams)` (the generated query schema validates filter values from the URL) → generated list hook with `list.apiParams` and `placeholderData: keepPreviousData` → `ResourceList` with `filterValues` (select filters, from `List<Resource>s<Param>`), `remove` (the generated delete mutation) and `onDeleted` (remove the detail query, invalidate the lists). `ResourceList` does the rest: header with New (writers), the toolbar card (search, filters, count, chips), states, table/cards with the row menu (writers), delete confirmation, paging, `clampPage`. |
+| `<Resource>DetailPage.tsx` | `useIdParam` (bad id → `NotFoundPage`) → generated get hook → `ResourceDetail` with `remove` and `onDeleted` (same cache update as the list). `ResourceDetail` does the rest: 403/404 pages, states, back link, title with the `detail.status` badge, Edit/Delete (writers) with confirmation (a 404 counts as success, a 409 `in-use` gets its own toast), section cards, related lists. |
+| `<Resource>FormPage.tsx` | Create and edit pages around `ResourceForm`. `useOnSaved` sets the detail cache and invalidates lists. Edit uses `UpdateBody.omit({ version: true })` as schema and sends `version` from `ResourceForm`'s `save(data, version)`; `reload` refetches for the stale-version dialog; its `DataState` loads with `FormSkeleton`. `enumValues` maps each enum field to the generated enum's values. |
 
 ## Registration (one line each)
 - `src/manifest/index.ts`: add the key to `ResourceKey`.
@@ -48,18 +48,20 @@ no `\b` and skips them silently; use `perl -pe 's/\bPersonDetail\b/OrderDetail/g
 
 | Need | Use |
 |---|---|
-| Page title + actions | `components/app/PageHeader` (also sets `document.title`) |
-| Loading / empty / error with retry | `components/app/DataState`, `list/ListSkeleton` |
+| List page, detail page | `list/ResourceList`, `components/app/ResourceDetail` (everything but the generated hooks and the cache update) |
+| Page title + actions | `components/app/PageHeader` (also sets `document.title`; `badge` slot) |
+| Loading / empty / error with retry | `components/app/DataState` (`empty` takes an `EmptyState`: icon, title, text, action), `list/ListSkeleton`, `DetailSkeleton`, `form/FormSkeleton` |
+| Delete with confirmation | `useDeleteRecord` from `components/app/useDeleteRecord` (used by both composites) |
 | 403/404 from a query error | `components/app/errorPageFor` |
 | URL list state, back-to-list link | `list/listState` (`useListState`, `useListHref`) |
 | Search, filters, table/cards, paging | `list/SearchInput`, `list/ListFilters`, `list/DataTable`, `list/Pagination` |
-| Detail fields | `components/app/DetailList` (formatting via `formatValue`; nested objects as one block) |
+| Detail fields | `components/app/DetailSections` (section cards from `detailSections`: main fields, one per nested object, `form.readOnly` metadata; formatting via `formatValue`) |
 | Country picker | `components/app/CountrySelect` (`input: country`); never put country names in locale files |
 | Relation picker, related records | `components/app/RelationSelect` (`input: relation`), `RelatedLists` from `components/app/RelatedList` (keep it in every detail page; it renders nothing without `detail.related`) |
 | Delete failure toast | `toastDeleteError(t, error, name)` from `components/app/deleteError` (`in-use` gets its own message) |
 | Nested values | `getPath`, `objectFields`, `formFieldPaths` from `@/manifest` |
 | Form | `form/ResourceForm` (fields, resolver, server errors, stale reload, unsaved guard, toasts) |
-| Delete confirmation | `components/app/ConfirmDialog` |
+| Confirmation dialog | `components/app/ConfirmDialog` |
 | Roles | `useRoles` from `@/auth`, `canRead`/`canWrite` from `@/manifest` |
 | Record name | `formatDisplay(resource.display, record)` |
 | Labels built at runtime | `tDynamic`, `fieldLabelKey`, `enumLabelKey`, `groupLabelKey`, `filterLabelKey` from `@/i18n/dynamic` |
@@ -69,7 +71,7 @@ no `\b` and skips them silently; use `perl -pe 's/\bPersonDetail\b/OrderDetail/g
 ## Resource-specific code (the only allowed kinds)
 - The feature files above: they wire per-resource generated hooks to shared components (type safety needs the
   real names).
-- `useOnSaved` and the delete handler: cache updates need the per-resource query key getters.
+- `useOnSaved` and the `remove` / `onDeleted` props: cache updates need the per-resource query key getters.
 - `enumValues` (form) and `filterValues` (list filters): allowed enum values come from the generated model; the
   manifest only names the i18n enum.
 - The generated `List<Resource>sQueryParams` passed to `useListState`.

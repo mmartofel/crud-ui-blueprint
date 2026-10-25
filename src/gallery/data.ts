@@ -55,6 +55,12 @@ export const tasks = Array.from({ length: 18 }, (_, i) => {
   }
 })
 
+/** Deletes a sample record in place (the gallery list's row menu). */
+export function removeRecord(records: { id: number }[], id: number) {
+  const index = records.findIndex((record) => record.id === id)
+  if (index >= 0) records.splice(index, 1)
+}
+
 /**
  * An in-memory list/get source for generic components that read another resource (related lists, relation
  * pickers): `q` matches the display name, other params filter by equality (`<x>Id` by the embedded `<x>.id`).
