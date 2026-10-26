@@ -15,6 +15,10 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-10-26
+
+Corrects a 1.1.2 fix (#3). No migration needed.
+
 ### Fixed
 - Deleting from a detail page no longer shows the deleted record on the list's first render (1.1.2 said it did not,
   but the list read its cached rows while rendering): `ResourceDetail` drops the resource's cached lists before it
@@ -129,7 +133,8 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.0.0...v1.1.0
