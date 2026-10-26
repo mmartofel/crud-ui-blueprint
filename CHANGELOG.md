@@ -15,6 +15,12 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+### Fixed
+- Deleting from a detail page no longer shows the deleted record on the list's first render (1.1.2 said it did not,
+  but the list read its cached rows while rendering): `ResourceDetail` drops the resource's cached lists before it
+  navigates. The list still loads once, and the reference persons spec now fails if the record is ever drawn.
+- The list's "focus the search box" navigation state is cleared after use, so a reload does not move focus again.
+
 ## [1.1.2] - 2026-10-26
 
 Fixes from reviewing the 1.1.1 upgrade of person-ui-v2 (#3). No migration needed.
