@@ -72,5 +72,6 @@ After the fix: pull and regenerate (also for a version-only change), re-enable t
 
 ## Keep the skill true
 If a step here or in `references/wiring.md` was wrong or incomplete, fix this skill and `docs/PATTERNS.md` in the
-same session and list the fixes in the commit message. Record the resource-specific line count in PATTERNS.md
+same session and list the fixes in the commit message. After editing this skill, run its evals
+(`evals/evals.json`, README "Skill evals"); a new kind of mistake gets a new eval. Record the resource-specific line count in PATTERNS.md
 section 2.

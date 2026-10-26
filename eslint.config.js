@@ -12,6 +12,7 @@ export default defineConfig([
     'src/components/ui',
     'playwright-report',
     'test-results',
+    '.claude/worktrees',
   ]),
   {
     files: ['**/*.{ts,tsx}'],

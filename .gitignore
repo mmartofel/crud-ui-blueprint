@@ -41,3 +41,7 @@ reports
 
 # Playwright MCP output
 .playwright-mcp
+
+# skill-creator eval results and Claude Code worktrees (eval runs)
+.claude/**/*-workspace/
+.claude/worktrees/

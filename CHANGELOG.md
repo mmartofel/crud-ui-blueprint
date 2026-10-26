@@ -15,6 +15,17 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+### Added
+- Context7 MCP server in `.mcp.json` (current docs of the stack's libraries); `CLAUDE.md` asks to check it before
+  using a library API not yet used in the repo.
+- Hook `.claude/hooks/lint.sh`: ESLint on each edited TypeScript file, next to the typecheck.
+- Evals in the skill-creator format for the `crud-resource` skill (`.claude/skills/crud-resource/evals/`) and the
+  `contract-auditor` agent (`.claude/agents/evals/contract-auditor/`), on fixture contracts in
+  `src/test/fixtures/contract/`; README "Skill evals" says how to run them after editing a skill.
+- README "Claude Code setup" with the recommended plugins (`frontend-design`, `pr-review-toolkit`, `skill-creator`,
+  `spring-boot-template` for API repos).
+- `.claude/worktrees/` (Claude Code worktrees, e.g. eval runs) is ignored by git and ESLint; `eslint .` failed on them.
+
 ### Changed
 - Renovate raises the ranges in `package.json` with each update (`rangeStrategy: bump`), so they name the tested
   minimum instead of moving only the lockfile.

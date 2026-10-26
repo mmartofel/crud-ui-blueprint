@@ -9,6 +9,8 @@ skill.
 - Use plan mode for any task with 3+ steps or an architectural decision.
 - After any correction from the user, add a rule to `tasks/lessons.md`. Review it at session start.
 - Simplicity first: the smallest change that meets the requirement. No speculative abstractions.
+- Before using a library API not yet used in this repo (React Router, Vite, Tailwind v4, TanStack, orval, Zod 4, ...),
+  check its current docs through the Context7 MCP server (`.mcp.json`) instead of relying on memory.
 - Write all code, comments, commit messages and docs in English. The user may write in Polish;
   reply in the user's language, but never put Polish into files (except `src/locales/pl/`).
 - Never mark a task done without meeting the Definition of Done below.
@@ -29,7 +31,7 @@ skill.
 |---|---|
 | `npm run dev` | Dev server on http://localhost:5173 (strict port; Keycloak redirects there) |
 | `npm run build` | Production build |
-| `npm run typecheck` | `tsc` without emit (also run by a hook after every TS edit) |
+| `npm run typecheck` | `tsc` without emit (a hook runs it and ESLint on the edited file after every TS edit) |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
 | `npm run e2e` | Playwright tests (needs the API stack running; `--project=gallery` needs nothing: gallery + axe) |
@@ -60,7 +62,8 @@ src/hooks/                   # shadcn hooks (use-mobile: the sidebar's lg breakp
 src/components/app/          # app shell, data table, list filters, country/relation pickers, related lists, form helpers, dialogs, states
 src/features/<resource>/     # one folder per resource: list, detail, form, routes
 src/gallery/                 # dev-only component gallery at /__gallery (fixtures, no env/API/login; not in the build)
-src/test/fixtures/           # persons/tasks manifest, schemas and labels for unit tests of the generic code and the gallery
+src/test/fixtures/           # persons/tasks manifest, schemas and labels for unit tests of the generic code and the gallery;
+                             #   contract/: the Person API contract (compliant, + a new field, non-compliant) for the evals
 e2e/                         # Playwright tests: shell.spec.ts, one spec per resource, gallery{,-a11y,-visual}.spec.ts;
                              #   support/ (login, API data, axe), __screenshots__/ (baselines, made in Docker)
 Dockerfile  docker/          # production image: nginx (SPA, /api proxy, CSP and headers), runtime config written at start
@@ -77,9 +80,12 @@ scripts/blueprint-upgrade.sh # applies the blueprint diff between two releases; 
 renovate.json                # Renovate: grouped weekly dependency updates, automerge of dev dependency patches
 .claude/skills/crud-ui-init/   # skill: set up a new project (config, contract, manifest draft, all resources)
 .claude/skills/crud-resource/  # skill: add or update a resource; references/wiring.md is the file-by-file guide,
-                               #   references/examples/ the reference resources (persons, tasks)
+                               #   references/examples/ the reference resources (persons, tasks),
+                               #   evals/ its skill-creator evals (README "Skill evals")
 .claude/skills/blueprint-upgrade/  # skill: take over a newer blueprint release in a project
-.claude/agents/              # contract-auditor (contract rules), ui-reviewer (finished screens)
+.claude/agents/              # contract-auditor (contract rules), ui-reviewer (finished screens); evals/contract-auditor/
+.claude/hooks/               # after each edit: typecheck.sh (tsc), lint.sh (ESLint on the edited file)
+.mcp.json                    # project MCP servers: playwright, shadcn, context7 (current library docs)
 ```
 
 ## API contract
@@ -163,6 +169,7 @@ manifest first, then implement it following the reference resources in
 If the manifest lacks a decision you need, ask instead of guessing.
 Use the `crud-resource` skill (`.claude/skills/crud-resource/`) for both a new resource and a contract change; it
 runs the `contract-auditor` agent first and stops for approval of the manifest draft.
+After editing that skill or the `contract-auditor` agent, run their evals (README "Skill evals") and fix any regression.
 
 ## Blueprint versioning
 - In the blueprint itself (no `.blueprint-version`): every change to `.claude/`, `docs/API-*.md` or generic code

@@ -32,6 +32,24 @@ Hook Form + Zod, orval, i18next, Vitest + Testing Library, Playwright.
   and two users for the e2e tests. Tested with Keycloak; the e2e login helper fills Keycloak's login form, so another
   provider needs `e2e/support/auth.ts` adapted.
 
+## Claude Code setup
+The repository brings its own Claude Code configuration: skills and agents in `.claude/`, hooks that run the typecheck
+and ESLint on every edited TypeScript file (`.claude/settings.json`), and three MCP servers in `.mcp.json` that the
+first session asks you to approve: Playwright (opens the app for checks), shadcn (adds components) and
+[Context7](https://context7.com) (current docs of the stack's libraries; no account needed, an API key only raises its
+rate limit).
+
+### Recommended Claude Code plugins
+Installed by each user, not committed. Most are in the official marketplace, usually already added
+(`/plugin marketplace add anthropics/claude-plugins-official`); install with `/plugin install <name>@claude-plugins-official`.
+
+| Plugin | Where | Used for |
+|---|---|---|
+| `frontend-design` | this UI | a new look: the brand step of `crud-ui-init`, changes to `src/styles/theme.css` or `docs/DESIGN.md` |
+| `pr-review-toolkit` | this UI | reviewing a branch before it is pushed (code, tests, error handling, comments) |
+| `skill-creator` | this UI | running the skill evals after a skill or agent changed (see "Skill evals") |
+| `spring-boot-template` | API repos | building and testing a Spring Boot API from `docs/API-KICKSTART.md`; not in the official marketplace: `/plugin marketplace add piomin/claude-ai-spring-boot`, then `/plugin install spring-boot-template@piomin` |
+
 ## Start a project
 
 ```bash
@@ -69,7 +87,7 @@ claude                                                              # paste the 
 ```
 
 1. Make the `spring-boot-template` Claude Code plugin available in the API repo (its skills and agents are named in
-   the template).
+   the template; install commands in "Recommended Claude Code plugins").
 2. Paste the prompt from `docs/API-KICKSTART.md` and replace its last paragraph with your domain (resources, fields,
    relations, filters).
 3. Answer its one round of questions (groupId, realm, field details) and approve the plan. It builds the skeleton
@@ -102,7 +120,7 @@ Keycloak is set up the same way for every API (realm roles `<realm>-viewer` and 
 |---|---|
 | `npm run dev` | Dev server on http://localhost:5173 (strict port: the OIDC client redirects there); `/api` is proxied to `API_PROXY_TARGET` |
 | `npm run build` | Production build |
-| `npm run typecheck` | `tsc` without emit (Claude Code also runs it after every TypeScript edit, `.claude/hooks/`) |
+| `npm run typecheck` | `tsc` without emit (Claude Code runs it and ESLint on the edited file after every TypeScript edit, `.claude/hooks/`) |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
 | `npm run e2e` | Playwright (needs the API and the OIDC provider running, users from `.env.local`) |
@@ -177,7 +195,9 @@ login and `docker push` there to publish it.
 - `src/test/fixtures/`: the example resources' manifest, schemas and labels, so the generic code has unit tests
   and the gallery (`src/gallery/`) has screens before your first resource exists.
 - `.claude/skills/crud-ui-init`, `.claude/skills/crud-resource` (with `references/wiring.md` and `references/examples/`),
-  `.claude/agents/contract-auditor.md`, `.claude/agents/ui-reviewer.md`, `.claude/hooks/typecheck.sh`.
+  `.claude/agents/contract-auditor.md`, `.claude/agents/ui-reviewer.md`, `.claude/hooks/{typecheck,lint}.sh`, `.mcp.json`;
+  evals in `.claude/skills/crud-resource/evals/` and `.claude/agents/evals/contract-auditor/` on the fixture contracts
+  in `src/test/fixtures/contract/` (see Skill evals).
 - `docs/API-CONTRACT.md` (for API teams), `docs/API-KICKSTART.md` and `docs/API-CLAUDE.md` (new Spring Boot API), `docs/PATTERNS.md` (lessons), `docs/DESIGN.md` (visual rules).
 - `Dockerfile`, `docker/` (nginx templates, runtime config), `k8s/`, `skaffold.yaml`: the production image and its deployment (see Deploy).
 - `CHANGELOG.md`, `docs/UPGRADE.md`, `scripts/blueprint-upgrade.sh`, `.claude/skills/blueprint-upgrade`: blueprint
@@ -205,6 +225,27 @@ After an intended change to the look:
 3. commit the baselines with the change. An unexpected diff is a bug, not a baseline to update.
 
 After upgrading `@playwright/test`, change the image tag in `.circleci/config.yml` too and regenerate all baselines.
+
+## Skill evals
+The `crud-resource` skill and the `contract-auditor` agent have evals in the
+[skill-creator](https://github.com/anthropics/claude-plugins-official) format: `evals/evals.json` with a prompt, the
+expected outcome and checkable expectations per case. They run on the Person API contract frozen in
+`src/test/fixtures/contract/` (`openapi.json` compliant, `openapi-new-field.json` adds `phone` to persons,
+`openapi-non-compliant.json` breaks four rules in persons); `files` paths are relative to the repository root.
+
+| Evals | Cases |
+|---|---|
+| `.claude/skills/crud-resource/evals/evals.json` | new resource from a compliant contract (stops at the manifest draft); contract change adding a field; non-compliant contract (stops at Phase A with a prompt for the API repo) |
+| `.claude/agents/evals/contract-auditor/evals.json` | compliant contract; four violations in persons; a contract change read from `git diff` |
+
+After editing a skill or agent (or `docs/API-CONTRACT.md`, which the auditor reads):
+1. Install `skill-creator` (see "Recommended Claude Code plugins") and, before the edit, keep a copy of the old version
+   if you want it as the baseline.
+2. Say: "run the evals of crud-resource with skill-creator" (or "of the contract-auditor agent in
+   .claude/agents/evals/contract-auditor"). Each case must run in its own git worktree: its setup line copies a fixture
+   into `contract/` and may edit `ui-manifest.yaml` or commit. Results go to a `*-workspace/` folder (ignored by git).
+3. Review the results in skill-creator's viewer. A failed expectation is a regression in the skill, unless the
+   expectation itself is wrong; fix one or the other in the same change. A new kind of mistake gets a new case.
 
 ## CI
 CircleCI (`.circleci/config.yml`) runs on every push: job `build` (`npm audit --audit-level=high`, typecheck, lint,

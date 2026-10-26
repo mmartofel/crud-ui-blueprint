@@ -14,7 +14,8 @@ re-learn its pitfalls (`docs/API-CONTRACT.md` section 10).
 2. Copy two files from this template:
    - `docs/API-CONTRACT.md` → `docs/API-CONTRACT.md` (the rules; never edited in the API repo),
    - `docs/API-CLAUDE.md` → `CLAUDE.md` (as is; the first session fills in its Project section).
-3. Make the `spring-boot-template` plugin available to Claude Code (its skills and agents are named in `CLAUDE.md`).
+3. Make the `spring-boot-template` plugin available to Claude Code (its skills and agents are named in `CLAUDE.md`;
+   install commands in this template's README, "Recommended Claude Code plugins").
 4. Start Claude Code in the directory and paste the prompt below, with your domain described at its end.
 5. Answer its questions, approve the plan, and let it build. At the end, `mvn clean verify` passes and the README has
    a "Connect a UI" section.
