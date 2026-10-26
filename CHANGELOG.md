@@ -15,6 +15,10 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+### Changed
+- Renovate raises the ranges in `package.json` with each update (`rangeStrategy: bump`), so they name the tested
+  minimum instead of moving only the lockfile.
+
 ## [1.0.0] - 2026-10-26
 
 The modern look, the production image and the upgrade path (issue #1, steps D1-P2).
