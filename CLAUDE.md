@@ -32,7 +32,9 @@ skill.
 | `npm run typecheck` | `tsc` without emit (also run by a hook after every TS edit) |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
-| `npm run e2e` | Playwright tests (needs the API stack running) |
+| `npm run e2e` | Playwright tests (needs the API stack running; `--project=gallery` needs nothing: gallery + axe) |
+| `npm run test:visual` | Gallery screenshot tests in the Playwright Docker image (docker or podman) |
+| `npm run test:visual:update` | Regenerate the screenshot baselines in that image; review the diff before committing |
 | `npm run contract:pull` | Copy the OpenAPI contract from `CONTRACT_SOURCE` (`.env.local`) into `contract/openapi.json` |
 | `npm run api:generate` | Regenerate `src/api/generated/` from `contract/openapi.json` |
 | `npm run contract:check` | Fail if `src/api/generated/` is out of date with the contract (CI; passes while there is no contract) |
@@ -57,7 +59,8 @@ src/components/app/          # app shell, data table, list filters, country/rela
 src/features/<resource>/     # one folder per resource: list, detail, form, routes
 src/gallery/                 # dev-only component gallery at /__gallery (fixtures, no env/API/login; not in the build)
 src/test/fixtures/           # persons/tasks manifest, schemas and labels for unit tests of the generic code and the gallery
-e2e/                         # Playwright tests (shell.spec.ts, gallery.spec.ts; one spec per resource)
+e2e/                         # Playwright tests: shell.spec.ts, one spec per resource, gallery{,-a11y,-visual}.spec.ts;
+                             #   support/ (login, API data, axe), __screenshots__/ (baselines, made in Docker)
 docs/DESIGN.md               # visual rules: tokens, typography, density, elevation, status colours; the reference for screens
 docs/API-CONTRACT.md         # contract rules the API must follow (checked by the contract-auditor agent); hand it to API teams
 docs/API-CLAUDE.md           # CLAUDE.md template for a new Spring Boot API that serves this UI (copied as is)
@@ -98,7 +101,10 @@ A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never han
   (`spring-person-api-claude`, commit `f98300e`) as the model for the shared classes.
 
 ## UI conventions
-- Look: follow `docs/DESIGN.md` (tokens only, no raw colours); check a changed component in `/__gallery`.
+- Look: `docs/DESIGN.md` is the reference for every screen (tokens only, no raw colours; type scale, spacing,
+  elevation, shell and resource screen layout); a screen must look like its `/__gallery` section. Check a changed
+  component there in both themes. The gallery is locked by screenshot tests (`npm run test:visual`) and axe: a change
+  to the look updates the baselines (`npm run test:visual:update`) in the same commit, reviewed.
 - Every screen text goes through i18n. Keys: `common.*`, `<resource>.title`, `<resource>.fields.<field>`
   (`<resource>.fields.<object>.<field>` for a nested object), `<resource>.groups.<object>` (a nested object's own label),
   `<resource>.filters.<param>`, `enums.<EnumName>.<VALUE>`. Field labels are never hard-coded and never derived from
@@ -109,9 +115,7 @@ A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never han
   formatted with `Intl` in the current language. Validation messages are translated through one global
   Zod error map, so generated schemas need no per-field messages.
 - Responsive: mobile first. Check 375px, 768px and 1440px.
-  - App shell (`AppShell`, `AppSidebar`): shadcn Sidebar from `lg`, collapsible to icons (remembered, Ctrl/⌘+B), an
-    off-canvas sheet below it; user menu (language, theme, logout) in its footer; header breadcrumbs from the route and
-    the manifest's `display`; content max width by page kind (lists widest, forms narrowest). See `docs/DESIGN.md`.
+  - App shell (`AppShell`, `AppSidebar`): sidebar from `lg`, a sheet below it; layout in `docs/DESIGN.md` "App shell".
   - Lists: table from `md`, cards below `md` (titled by the manifest's `display`; columns marked `mobile: subtitle` below it).
     A table wider than the screen scrolls inside its own frame, never the page, with a fade on the edge that has more
     columns; order manifest columns by importance. List filters are a row from `md` and a bottom sheet below it.
@@ -129,8 +133,8 @@ A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never han
   (409 `in-use`) says so (`toastDeleteError`).
 - Relations: a picker searching the related resource with `q`; lists and details link to the related record.
 - Hide (do not just disable) actions the user's role does not allow; the API still enforces them.
-- Accessibility: semantic HTML, every input has a label, visible focus, dialogs trap focus,
-  colour is never the only signal. Light and dark theme from shadcn tokens; no hard-coded colours.
+- Accessibility: no serious or critical axe violations (`expectAccessible` in every e2e spec, the gallery in CI);
+  semantic HTML, every input has a label, visible focus, dialogs trap focus, colour is never the only signal. Light and dark theme from shadcn tokens; no hard-coded colours.
   A control that disappears after use (e.g. "Clear filters") moves focus to a sensible neighbour. Sheets use a labelled
   close `Button` in `SheetHeader`, as in `AppSidebar` (the shadcn default close button has no name).
 - Open UI findings that were not fixed are listed under "Known gaps" in `docs/PATTERNS.md` section 3.
@@ -145,9 +149,10 @@ runs the `contract-auditor` agent first and stops for approval of the manifest d
 
 ## Workflow
 - Commit only when asked, and push only when asked; "commit" alone does not mean push.
-- CircleCI (`.circleci/config.yml`) runs typecheck, lint, unit tests, build and `contract:check`; e2e stays local,
-  so run `npm run e2e` before pushing a UI change.
-- After a push, check CI: `gh api repos/<owner>/<repo>/commits/<sha>/status` (context `ci/circleci: build`; logs at
+- CircleCI (`.circleci/config.yml`) runs typecheck, lint, unit tests, build and `contract:check` (job `build`), and the
+  gallery's functional, axe and screenshot tests in the Playwright image (job `gallery`); e2e against the API stays
+  local, so run `npm run e2e` before pushing a UI change.
+- After a push, check CI: `gh api repos/<owner>/<repo>/commits/<sha>/status` (contexts `ci/circleci: build` and `ci/circleci: gallery`; logs at
   the `target_url`). Poll every 30 s or slower. CircleCI must be enabled once for a new repository (circleci.com).
   - Take `<owner>/<repo>` from `git remote get-url origin` instead of typing it: a misspelled owner gives a 404
     that looks like an access or GitHub problem.
@@ -157,7 +162,10 @@ runs the `contract-auditor` agent first and stops for approval of the manifest d
 ## Definition of Done
 1. `npm run typecheck`, `npm run lint`, `npm test` and `npm run build` pass.
 2. The changed screens were opened with the Playwright MCP server at 375, 768 and 1440 px,
-   logged in as the writer and as the reader user, in every language of `app.languages`, with no console errors.
+   logged in as the writer and as the reader user, in every language of `app.languages`, with no console errors,
+   and compared with their `/__gallery` sections in light and dark.
 3. The `ui-reviewer` agent reviewed the change and its findings are fixed or listed for the user.
-4. E2E tests cover the changed flow (happy path plus at least one error case).
+4. E2E tests cover the changed flow (happy path plus at least one error case) and check each page with
+   `expectAccessible`; `npx playwright test --project=gallery` and `npm run test:visual` pass (baselines updated and
+   reviewed when the look changed on purpose).
 5. README updated if commands, setup or behaviour changed.

@@ -2,6 +2,9 @@
 
 The reference for every screen and for the `ui-reviewer` agent. Every token is defined in `src/styles/theme.css`, and
 `npm run dev` shows them all at http://localhost:5173/__gallery. The gallery needs no `.env.local`, API or login.
+The gallery is locked by screenshot tests (every section at 375, 768 and 1440 px, light and dark) and axe checks,
+in CI too: a change to the look updates the baselines on purpose (`npm run test:visual:update`, README "Visual
+regression"). Every resource screen must look like its gallery section.
 
 ## Direction
 A calm, modern business admin in the spirit of Linear, Vercel and Stripe dashboards. People open it to find, read

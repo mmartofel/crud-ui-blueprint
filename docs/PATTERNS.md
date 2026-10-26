@@ -3,7 +3,7 @@
 How the method was built and what was learned. This template was extracted from **Person UI**
 (`spring-person-ui-claude`, against `spring-person-api-claude`, Person API 3.4.1): its two resources are now the
 reference examples in `.claude/skills/crud-resource/references/examples/` (`persons`, `tasks`). Copy them, do not
-reinvent them. Conventions are in `CLAUDE.md`.
+reinvent them. Conventions are in `CLAUDE.md`, visual rules in `docs/DESIGN.md` (shown and locked by `/__gallery`).
 
 Sections 2 and 3 are that app's history: paths such as `src/features/persons/` and stage numbers refer to it. Add
 your project's lessons to section 3 and keep section 4 (what the manifest can express) current.
@@ -79,8 +79,9 @@ Example: a resource `orders` with API tag `Orders`. Steps 1–3 come before any 
 7. **Definition of Done** (`CLAUDE.md`):
    - checks;
    - Playwright MCP at 375/768/1440 px, writer and reader, every language of `app.languages`;
-   - the `ui-reviewer` agent;
-   - e2e;
+   - compare each screen with its `/__gallery` section in light and dark (`docs/DESIGN.md`);
+   - the `ui-reviewer` agent (including "Visual quality");
+   - e2e, with `expectAccessible` (axe) on every page;
    - README.
 
 ### Shared pieces (use, do not copy)
@@ -178,6 +179,9 @@ Everything else is generic and driven by the manifest. These are the only person
 | 9b | **API bug:** `PUT /api/tasks/{id}` with a new `assigneeId` committed and then answered 500 (lazy `assignee` read after the transaction, `open-in-view: false`), so the next save met the stale-version dialog | fixed in the API repo (3.4.1, which also returns Problem Details for unexpected errors); the UI only regenerated the client. The e2e test changes the assignee and saves again |
 | Library | On an author's page, every book in the related list repeated the author's name: the related list showed all `mobile: subtitle` columns, including the relation back to the record being shown | `relatedSubtitleFields` (`components/app/relatedFields.ts`, unit-tested) leaves out a relation column whose `resource` is the parent |
 | Library | E2E: a relation input labelled "Author" and its picker's search box, labelled "Authors", both matched `getByRole('combobox', { name: 'Author' })` while the picker was closing | wait for `getByRole('dialog')` to be hidden before asserting the input (`references/wiring.md`, Tests) |
+| D4 | axe (`label-content-name-mismatch`, WCAG 2.5.3): the user menu button's `aria-label` ("Anna Kowalska – user menu") left out the visible role labels and initials | the button is named by its content (name, roles; the initials `aria-hidden`) plus a `sr-only` "– User menu" |
+| D4 | Screenshots of a section taller than the viewport drew the sticky app header and the mobile form bar over its middle | the visual spec injects `e2e/support/visual.css` (`stylePath`), which puts those two bars back into the flow |
+| D4 | Fonts render differently on macOS and Linux, so baselines from a Mac fail in CI | baselines are made only in the Playwright image (`scripts/visual.sh`, docker or podman, `node_modules` in a volume); the spec is skipped without `VISUAL=1` |
 
 `tasks/lessons.md` has no entries: there were no user corrections. The decisions the user made are in the table
 above and in the git log.
@@ -186,6 +190,13 @@ Known gaps, left as is:
 - **Template (step 10 review):** buttons are 44px below `md` and 36px from `md`, so at 768-1023 px (sheet menu, touch
   devices) the header buttons are 36px. It meets the written rule ("touch targets on mobile"); kept as a decision.
   Since D2 the sheet's open and close buttons are 44px up to `lg`; other buttons keep the rule.
+- **Open from the D4 (lock the design) review:**
+  - full-page states (`ErrorPage`: home "No resources yet", 403, 404, sign-in error) show a bare 48 px icon and a
+    body-size line, unlike `EmptyState` (icon in a soft circle, `text-sm` muted line); `ErrorPage` is neither in
+    `docs/DESIGN.md` nor in the gallery, so neither the screenshots nor the reviewer can compare it;
+  - the collapsed sidebar's user menu shows only the initials, without a tooltip (the nav items have one);
+  - `gallery.spec.ts` "the reader sees no write actions" failed once in a full parallel run (the role switch
+    re-renders the whole gallery) and passed on every repeat.
 - **Open from the D3 (resource screens) review:**
   - the list table's frame is capped at the viewport height (for the sticky header), so with 20+ rows the table
     scrolls inside its card before the page does; kept as the documented design;
@@ -217,9 +228,6 @@ Known gaps, left as is:
 - user-menu labels are not read by screen readers;
 - a server `past` error is cleared by a client-side re-validation until the next save;
 - the API reports birth-date errors before duplicate-email errors, so the user sees them one save at a time.
-- **Design foundations (`docs/DESIGN.md`):** rules the generic components do not follow yet: numeric list columns
-  right-aligned, the shell's sidebar on the `sidebar` surface and its content on cards (the shell and the resource
-  screens are restyled next).
 
 ## 4. `ui-manifest.yaml`: what was missing, what is unused
 

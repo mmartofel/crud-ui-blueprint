@@ -14,6 +14,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "e2e": "playwright test",
+    "test:visual": "scripts/visual.sh",
+    "test:visual:update": "scripts/visual.sh --update-snapshots",
     "contract:pull": "node --env-file-if-exists=.env.local scripts/contract-pull.mjs",
     "api:generate": "if node scripts/has-contract.mjs; then orval; fi",
     "contract:check": "if node scripts/has-contract.mjs; then orval && git diff --quiet HEAD -- src/api/generated && test -z \"$(git status --porcelain -- src/api/generated)\" || (echo \"src/api/generated is out of date: run npm run api:generate and commit the result\" >&2 && exit 1); fi"
@@ -40,6 +42,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
     "@tailwindcss/vite": "^4.3.3",

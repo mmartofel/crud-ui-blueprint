@@ -47,7 +47,6 @@ export function UserMenu() {
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              aria-label={name ? t('common.user.menuWithName', { name }) : t('common.user.menu')}
             >
               <span
                 aria-hidden
@@ -59,6 +58,9 @@ export function UserMenu() {
                 <span className="truncate font-medium">{name}</span>
                 <span className="text-caption truncate text-muted-foreground">{roleLabel}</span>
               </span>
+              {/* Named by its visible text (name, roles; the initials are hidden) plus this, so the name contains
+                  every word on the button (WCAG 2.5.3, axe label-content-name-mismatch). */}
+              <span className="sr-only"> – {t('common.user.menu')}</span>
               <ChevronsUpDown aria-hidden className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>

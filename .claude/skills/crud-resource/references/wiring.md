@@ -105,4 +105,14 @@ A removed field must leave the manifest, the locales and the tests; `npm test` a
   edit or delete existing records. When a relation input's label is a prefix of the related resource's title ("Author" / "Authors"),
   wait for the picker dialog to be hidden before asserting the input: its search box matches the same name. After adding fields, re-run the old tests: text matchers shared by many fields
   (e.g. "Not provided") become ambiguous; assert next to the field's label instead.
+- Accessibility: `expectAccessible(page)` (`e2e/support/a11y.ts`, axe; serious and critical violations fail) on every
+  distinct page the spec opens (list, form, detail, empty list, reader view) and `expectAccessible(page, '[role=alertdialog]')`
+  on the delete confirmation, as in the examples.
 - Unit tests only for new generic code; `src/i18n/locales.test.ts` checks labels the manifest needs.
+
+## The look
+A resource gets the look from the generic components (`ResourceList`, `ResourceDetail`, `ResourceForm`, `DataState`):
+the feature folder has no markup or classes of its own, so it looks like `/__gallery`. Compare each screen with its
+gallery section at 375, 768 and 1440 px in light and dark (`docs/DESIGN.md`). If it needs something the gallery does
+not show, extend the generic component, add the case to `src/gallery/GalleryPage.tsx` and update the screenshot
+baselines (`npm run test:visual:update`, README "Visual regression").

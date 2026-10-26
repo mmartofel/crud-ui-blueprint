@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { expectAccessible } from './support/a11y.ts'
 import { authFile, openAs } from './support/auth.ts'
 import { callApi, deleteViaApi, expectListParams, unique } from './support/data.ts'
 import { switchLanguage } from './support/shell.ts'
@@ -48,6 +49,7 @@ test.describe('persons as writer', () => {
 
     await page.getByRole('link', { name: 'New', exact: true }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'New person' })).toBeVisible()
+    await expectAccessible(page)
     await page.getByLabel('First name').fill('Anna')
     await page.getByLabel('Last name').fill(lastName)
     await page.getByLabel('Email').fill(`anna.${id}@example.com`)
@@ -62,6 +64,7 @@ test.describe('persons as writer', () => {
     await expect(page.getByText(`Anna ${lastName} was created.`)).toBeVisible()
     await expect(page.getByText('Jan 15, 1990')).toBeVisible()
     await expect(page.getByText('Female')).toBeVisible()
+    await expectAccessible(page)
 
     // Edit: rename and clear the optional date (PUT replaces the record).
     await page.getByRole('link', { name: 'Edit' }).click()
@@ -77,12 +80,14 @@ test.describe('persons as writer', () => {
     await expect(page.getByRole('button', { name: 'Delete' })).toBeFocused()
     await page.getByRole('button', { name: 'Delete' }).click()
     const dialog = page.getByRole('alertdialog', { name: `Delete Anne ${lastName}?` })
+    await expectAccessible(page, '[role=alertdialog]')
     await dialog.getByRole('button', { name: 'Delete' }).click()
     await expect(page).toHaveURL('/persons')
     await expect(page.getByText(`Anne ${lastName} was deleted.`)).toBeVisible()
 
     await page.getByRole('searchbox').fill(lastName)
     await expect(page.getByText(`Nothing matches “${lastName}”.`, { exact: false })).toBeVisible()
+    await expectAccessible(page)
   })
 
   test('the row menu deletes a person after confirmation, and a person still in use is kept', async ({ page }) => {
@@ -464,6 +469,7 @@ test.describe('persons as reader', () => {
 
     await page.goto('/persons/new')
     await expect(page.getByRole('heading', { level: 1, name: 'Access denied' })).toBeVisible()
+    await expectAccessible(page)
   })
 
   test('an unknown person id shows the 404 page', async ({ page }) => {

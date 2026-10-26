@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { expectAccessible } from './support/a11y.ts'
 import { authFile, openAs } from './support/auth.ts'
 import { callApi, deleteViaApi, expectListParams, unique } from './support/data.ts'
 
@@ -48,6 +49,7 @@ test.describe('tasks as writer', () => {
     // Contract defaults: priority MEDIUM, done false.
     await expect(page.getByRole('combobox', { name: 'Priority' })).toHaveText('Medium')
     await expect(page.getByRole('checkbox', { name: 'Done' })).not.toBeChecked()
+    await expectAccessible(page)
 
     const title = `Report ${id}`
     await page.getByLabel('Title').fill(title)
@@ -69,6 +71,7 @@ test.describe('tasks as writer', () => {
     await expect(page.getByText('Second line')).toBeVisible()
     const assignee = page.getByRole('link', { name: `Tia Owner${id}` })
     await expect(assignee).toBeVisible()
+    await expectAccessible(page)
 
     // Edit: the relation starts from the record, server-set fields are shown but not editable; clear the assignee.
     await page.getByRole('link', { name: 'Edit' }).click()
@@ -204,6 +207,7 @@ test.describe('tasks as reader', () => {
     await openAs(page, '/tasks')
     await expect(page.getByRole('heading', { level: 1, name: 'Tasks' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'New', exact: true })).toHaveCount(0)
+    await expectAccessible(page)
     await page.goto('/tasks/new')
     await expect(page.getByRole('heading', { level: 1, name: 'Access denied' })).toBeVisible()
   })

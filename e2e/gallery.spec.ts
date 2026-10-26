@@ -1,35 +1,12 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+import { openGallery, sections } from './support/gallery.ts'
 
 // The dev-only component gallery (/__gallery): no login, no API. Runs in the `gallery` project (playwright.config.ts).
-
-const sections = [
-  'Colour tokens',
-  'Typography',
-  'Buttons and badges',
-  'List',
-  'Detail',
-  'Form',
-  'States',
-  'Confirm dialog and toasts',
-]
-
-/** Opens the gallery in English and collects console errors. */
-async function openGallery(page: Page): Promise<string[]> {
-  const errors: string[] = []
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text())
-  })
-  page.on('pageerror', (error) => errors.push(error.message))
-  await page.addInitScript(() => localStorage.setItem('lang', 'en'))
-  await page.goto('/__gallery')
-  await expect(page.getByRole('heading', { level: 1, name: 'Component gallery' })).toBeVisible()
-  return errors
-}
 
 test('renders every section without console errors', async ({ page }) => {
   const errors = await openGallery(page)
 
-  for (const name of sections) await expect(page.getByRole('heading', { level: 2, name, exact: true })).toBeVisible()
+  for (const [, name] of sections) await expect(page.getByRole('heading', { level: 2, name, exact: true })).toBeVisible()
   await expect(page.locator('#list')).toContainText('Available')
   await expect(page.getByRole('heading', { name: /^Tasks \(\d+\)$/ })).toBeVisible()
   expect(errors).toEqual([])
@@ -134,7 +111,7 @@ test('delete asks for confirmation and toasts; the theme switches to dark', asyn
   await confirm.getByRole('button', { name: 'Delete' }).click()
   await expect(page.getByRole('region', { name: /Notifications/ })).toContainText('deleted')
 
-  await page.getByRole('button', { name: /user menu/ }).click()
+  await page.getByRole('button', { name: /user menu/i }).click()
   await page.getByRole('menuitem', { name: /^Theme/ }).click()
   await page.getByRole('menuitemradio', { name: 'Dark' }).click()
   await expect(page.locator('html')).toHaveClass(/dark/)

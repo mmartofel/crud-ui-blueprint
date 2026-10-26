@@ -1,9 +1,12 @@
 import { expect, test } from '@playwright/test'
+import { expectAccessible } from './support/a11y.ts'
 import { authFile, fillLoginForm, isLoginPage, loginAs, openAs } from './support/auth.ts'
 import { openUserMenu, switchLanguage } from './support/shell.ts'
 
 // The app shell, valid for a project without resources. When the first resource exists, `/` opens its list instead
 // of "No resources yet": update the expectations marked HOME (see the examples in .claude/skills/crud-resource).
+
+// Every distinct page and open layer gets an axe check (`expectAccessible`).
 
 // Tests that need the login form (login, logout, language passed to the provider) sign in with a fresh context.
 test.describe('app shell', () => {
@@ -19,8 +22,10 @@ test.describe('app shell', () => {
 
     // HOME
     await expect(page.getByRole('heading', { level: 1, name: 'No resources yet' })).toBeVisible()
+    await expectAccessible(page)
     await openUserMenu(page)
     await expect(page.getByRole('menu')).toContainText('Roles')
+    await expectAccessible(page, '[role=menu]')
     await page.getByRole('menuitem', { name: 'Log out' }).click()
 
     await page.waitForURL(isLoginPage)
@@ -46,6 +51,7 @@ test.describe('app shell', () => {
     await page.goto('/?error=access_denied&state=bogus')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Sign-in failed' })).toBeVisible()
+    await expectAccessible(page)
     await page.getByRole('button', { name: 'Sign in again' }).click()
     await fillLoginForm(page, 'reader')
 
@@ -67,6 +73,7 @@ test.describe('app shell as reader', () => {
     await openAs(page, '/no-such-page')
 
     await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible()
+    await expectAccessible(page)
     await page.getByRole('link', { name: 'Back to start' }).click()
     await expect(page).toHaveURL('/')
   })
@@ -95,6 +102,7 @@ test.describe('app shell as reader', () => {
     // HOME: no resources yet, so there is no navigation; with resources, click one and expect its route.
     await expect(dialog.getByRole('navigation', { name: 'Main navigation' })).toHaveCount(0)
     await expect(dialog.getByRole('button', { name: /user menu/i })).toBeVisible()
+    await expectAccessible(page, '[role=dialog]')
     await dialog.getByRole('button', { name: 'Close menu' }).click()
     await expect(dialog).toBeHidden()
     await expect(page.getByRole('button', { name: 'Open menu' })).toBeFocused()

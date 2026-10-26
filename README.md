@@ -95,7 +95,9 @@ Keycloak is set up the same way for every API (realm roles `<realm>-viewer` and 
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
 | `npm run e2e` | Playwright (needs the API and the OIDC provider running, users from `.env.local`) |
-| `npx playwright test --project=gallery` | Only the component gallery tests (no API, OIDC or `.env.local`) |
+| `npx playwright test --project=gallery` | Only the component gallery tests, with axe (no API, OIDC or `.env.local`) |
+| `npm run test:visual` | Gallery screenshot tests in the Playwright Docker image (see Visual regression) |
+| `npm run test:visual:update` | Regenerate the screenshot baselines in that image |
 | `npm run contract:pull` | Copy the contract from `CONTRACT_SOURCE` into `contract/openapi.json` |
 | `npm run api:generate` | Regenerate `src/api/generated/` from the contract (a no-op until there is one) |
 | `npm run contract:check` | Fail if `src/api/generated/` is out of date with the contract (CI) |
@@ -121,7 +123,31 @@ Without `.env.local` the app stops with a console error naming the missing `VITE
   `.claude/agents/contract-auditor.md`, `.claude/agents/ui-reviewer.md`, `.claude/hooks/typecheck.sh`.
 - `docs/API-CONTRACT.md` (for API teams), `docs/API-KICKSTART.md` and `docs/API-CLAUDE.md` (new Spring Boot API), `docs/PATTERNS.md` (lessons), `docs/DESIGN.md` (visual rules).
 
+## Visual regression and accessibility
+The look is locked by the component gallery (`/__gallery`):
+- **Screenshots** (`e2e/gallery-visual.spec.ts`): every gallery section and the app shell at 375, 768 and 1440 px,
+  light and dark, with a fixed locale (`en-US`), time zone (UTC), pixel ratio and fonts, and animations off. The
+  baselines are in `e2e/__screenshots__/`.
+- **axe** (`@axe-core/playwright`, `e2e/support/a11y.ts`): every gallery section, the whole page and the open dialog
+  and user menu in both themes (`e2e/gallery-a11y.spec.ts`), and `expectAccessible(page)` on every page of the
+  e2e suite. Serious and critical violations fail.
+
+Fonts render differently on each OS, so screenshots run only in the official Playwright image
+(`mcr.microsoft.com/playwright:v<@playwright/test version>-noble`), locally and in CI. `npm run test:visual` starts
+it with docker (or podman when docker is missing; `CONTAINER_ENGINE` picks one), keeps a Linux `node_modules` in a
+named volume and runs the spec with `VISUAL=1`; without it the spec is skipped.
+
+After an intended change to the look:
+1. `npm run test:visual:update` (arguments go to Playwright, e.g. `npm run test:visual:update -- -g "List"`);
+2. review the changed PNGs in `git diff` (or the failed run's `playwright-report/`: expected, actual and diff side by
+   side, `npx playwright show-report`);
+3. commit the baselines with the change. An unexpected diff is a bug, not a baseline to update.
+
+After upgrading `@playwright/test`, change the image tag in `.circleci/config.yml` too and regenerate all baselines.
+
 ## CI
-CircleCI (`.circleci/config.yml`) runs typecheck, lint, unit tests, build and `contract:check` on every push. Enable
-the project once on circleci.com for a repository created from the template. E2E tests need a running API and OIDC
-provider, so they run locally (`npm run e2e`) before a UI change is pushed.
+CircleCI (`.circleci/config.yml`) runs on every push: job `build` (typecheck, lint, unit tests, build,
+`contract:check`) and job `gallery` (the gallery's functional, axe and screenshot tests in the Playwright image; a
+failed run keeps the report and diffs as artifacts). Enable the project once on circleci.com for a repository
+created from the template. E2E tests against the app need a running API and OIDC provider, so they run locally
+(`npm run e2e`) before a UI change is pushed.
