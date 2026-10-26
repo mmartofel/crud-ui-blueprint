@@ -22,7 +22,7 @@
       "expected_output": "Persons is not compliant with four problems (missing required list, Java-only pattern, */* response, pageable object); Tasks is compliant; a pasteable prompt for the API repo.",
       "files": ["src/test/fixtures/contract/openapi-non-compliant.json"],
       "expectations": [
-        "The report has Persons: Not compliant with a violation count, and Tasks: Compliant",
+        "The report starts with the verdict lines, nothing before them: Persons: Not compliant (with a violation count), then Tasks: Compliant",
         "It names PersonResponse having no required list (check 4)",
         "It names the (?i) pattern on firstName as Java-only syntax that JavaScript rejects (check 8)",
         "It names the */* media type on GET /api/persons/{id} 200 (check 2)",

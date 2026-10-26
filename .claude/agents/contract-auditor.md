@@ -52,7 +52,15 @@ When the caller asks about a contract change, also run `git diff contract/openap
 that touched it: `git log -n 2 --format=%h -- contract/openapi.json`) and list what changed per resource.
 
 ## Report
-Start with one line per resource: `<Tag>: Compliant` or `<Tag>: Not compliant (<n> violations)`.
+The caller reads the first lines to decide what to do next, so the report always has this shape. The first character
+of your reply is the first verdict line; never open with a sentence about what you audited:
+
+```
+<Tag>: Compliant
+<Tag>: Not compliant (<n> violations)
+
+Contract: contract/openapi.json, <info.title> <info.version>; <changes compared with <commit>, or "no diff">.
+```
 
 For each non-compliant resource, a fenced block the user can paste as a prompt into the API repo:
 
