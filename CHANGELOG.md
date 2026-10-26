@@ -15,6 +15,10 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-26
+
+Claude Code tooling (issue #1, step P3). No migration needed.
+
 ### Added
 - Context7 MCP server in `.mcp.json` (current docs of the stack's libraries); `CLAUDE.md` asks to check it before
   using a library API not yet used in the repo.
@@ -82,6 +86,7 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v0.9.0...v1.0.0
 [0.9.0]: https://github.com/mmartofel/crud-ui-blueprint/releases/tag/v0.9.0
