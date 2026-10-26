@@ -15,6 +15,29 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+Fixes from validating 1.1.0 on a new project (person-ui-v2, #3). No migration needed.
+
+### Fixed
+- Deleting from a detail page no longer fetches the deleted record again (404): `ResourceDetail` calls `onDeleted`
+  once the page has unmounted.
+- After deleting the last row from the row menu, focus goes to the search box instead of the page body
+  (`ConfirmDialog` `fallbackFocus`, passed through `useDeleteRecord`).
+- A form registers its unsaved-changes blocker only while it has unsaved changes, so a page with two forms (the
+  gallery) no longer makes react-router warn.
+- Relation and country pickers have a transparent background like the other inputs (they looked disabled in the
+  light theme).
+- E2E support: `openAs` waits up to 15 s for the OIDC round trip; `expectAccessible` waits for dialog animations; the
+  desktop and mobile projects allow 10 s per assertion and 60 s per test.
+- Reference specs (`crud-resource` examples): mobile card assertions match the D3 card; waits for the rendered list
+  state between quick filter, chip and sort changes.
+
+### Changed
+- `crud-ui-init`: also sets the ingress example's API backend, regenerates the app shell screenshots after naming the
+  app, and says where the README intro ends.
+- `crud-resource`: a related list or test that needs a resource not built yet waits for it; `wiring.md` explains the
+  URL-before-render race; the examples README shows the `HOME` lines of `e2e/shell.spec.ts` for a first resource,
+  and the sign-in callback test is marked `HOME`.
+
 ## [1.1.0] - 2026-10-26
 
 Claude Code tooling (issue #1, step P3). No migration needed.
