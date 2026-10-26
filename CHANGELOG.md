@@ -15,6 +15,16 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+Fixes from reviewing the 1.1.1 upgrade of person-ui-v2 (#3). No migration needed.
+
+### Fixed
+- Relation and country pickers look like the other inputs: input border in the light theme, no hover fill, and a
+  filter's "Any" in the normal text colour (only a placeholder is muted); shared `pickerTriggerClass`.
+- Deleting from a detail page puts focus in the list's search box (was the page body), and the list loads once
+  without showing the deleted record (the resource's cached lists are dropped as the detail page unmounts).
+- `ResourceForm` `confirmLeave` (default true): the gallery's second form does not ask, so two dirty forms no longer
+  make react-router warn.
+
 ## [1.1.1] - 2026-10-26
 
 Fixes from validating 1.1.0 on a new project (person-ui-v2, #3). No migration needed.
