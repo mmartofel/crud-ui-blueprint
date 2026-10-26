@@ -15,6 +15,8 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-10-26
+
 Fixes from reviewing the 1.1.1 upgrade of person-ui-v2 (#3). No migration needed.
 
 ### Fixed
@@ -121,7 +123,8 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v0.9.0...v1.0.0
