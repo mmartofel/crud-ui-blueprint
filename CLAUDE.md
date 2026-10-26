@@ -70,9 +70,15 @@ docs/API-CONTRACT.md         # contract rules the API must follow (checked by th
 docs/API-CLAUDE.md           # CLAUDE.md template for a new Spring Boot API that serves this UI (copied as is)
 docs/API-KICKSTART.md        # how to start that API: files to copy and the first-session prompt
 docs/PATTERNS.md             # how the method was built, lessons, what the manifest can and cannot express
+docs/UPGRADE.md              # how a project takes over a newer blueprint release (3-way diff between tags)
+CHANGELOG.md                 # blueprint releases (Keep a Changelog, SemVer); deleted in a project by crud-ui-init
+.blueprint-version           # projects only: the blueprint release the project is on (absent in the blueprint)
+scripts/blueprint-upgrade.sh # applies the blueprint diff between two releases; run by the blueprint-upgrade skill
+renovate.json                # Renovate: grouped weekly dependency updates, automerge of dev dependency patches
 .claude/skills/crud-ui-init/   # skill: set up a new project (config, contract, manifest draft, all resources)
 .claude/skills/crud-resource/  # skill: add or update a resource; references/wiring.md is the file-by-file guide,
                                #   references/examples/ the reference resources (persons, tasks)
+.claude/skills/blueprint-upgrade/  # skill: take over a newer blueprint release in a project
 .claude/agents/              # contract-auditor (contract rules), ui-reviewer (finished screens)
 ```
 
@@ -158,9 +164,16 @@ If the manifest lacks a decision you need, ask instead of guessing.
 Use the `crud-resource` skill (`.claude/skills/crud-resource/`) for both a new resource and a contract change; it
 runs the `contract-auditor` agent first and stops for approval of the manifest draft.
 
+## Blueprint versioning
+- In the blueprint itself (no `.blueprint-version`): every change to `.claude/`, `docs/API-*.md` or generic code
+  (`docs/UPGRADE.md` "What an upgrade touches") gets a line under `[Unreleased]` in `CHANGELOG.md`, with a
+  "Migration" line when a project must act (then the next release is MAJOR). Releases and `v*` tags only when asked.
+- In a project: blueprint fixes come in through the `blueprint-upgrade` skill, never by copying files by hand. A fix
+  to generic code made here is reported to the user as a candidate for the blueprint.
+
 ## Workflow
 - Commit only when asked, and push only when asked; "commit" alone does not mean push.
-- CircleCI (`.circleci/config.yml`) runs typecheck, lint, unit tests, build and `contract:check` (job `build`), and the
+- CircleCI (`.circleci/config.yml`) runs `npm audit --audit-level=high`, typecheck, lint, unit tests, build and `contract:check` (job `build`), and the
   gallery's functional, axe and screenshot tests in the Playwright image (job `gallery`), and builds the production
   image (job `image`, no push); e2e against the API stays
   local, so run `npm run e2e` before pushing a UI change.

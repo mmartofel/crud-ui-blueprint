@@ -46,6 +46,16 @@ claude                            # then: "init the project" (crud-ui-init skill
 manifest, and builds every resource with `crud-resource`. To do it by hand: copy `.env.example` to `.env.local`,
 fill it in, set `app` in `ui-manifest.yaml`, and follow the method below.
 
+`crud-ui-init` also records the blueprint release the project starts from in `.blueprint-version` (by hand: the
+first version in `CHANGELOG.md`), so later blueprint fixes can be taken over.
+
+## Upgrade from the blueprint
+A project created from the template shares no history with it. To take over a newer blueprint release (generic
+components, skills, agents, API docs, tooling) while keeping your resources, theme and locales, say "upgrade from the
+blueprint" in Claude Code (`blueprint-upgrade` skill), or run `scripts/blueprint-upgrade.sh` and follow
+[docs/UPGRADE.md](docs/UPGRADE.md). What changed in each release is in `CHANGELOG.md`; a MAJOR release lists the
+changes a project must make by hand.
+
 ## Start a new API (kickstart)
 No API yet? Start a Spring Boot API that already follows the contract, from an empty directory and one prompt
 ([docs/API-KICKSTART.md](docs/API-KICKSTART.md)):
@@ -170,6 +180,9 @@ login and `docker push` there to publish it.
   `.claude/agents/contract-auditor.md`, `.claude/agents/ui-reviewer.md`, `.claude/hooks/typecheck.sh`.
 - `docs/API-CONTRACT.md` (for API teams), `docs/API-KICKSTART.md` and `docs/API-CLAUDE.md` (new Spring Boot API), `docs/PATTERNS.md` (lessons), `docs/DESIGN.md` (visual rules).
 - `Dockerfile`, `docker/` (nginx templates, runtime config), `k8s/`, `skaffold.yaml`: the production image and its deployment (see Deploy).
+- `CHANGELOG.md`, `docs/UPGRADE.md`, `scripts/blueprint-upgrade.sh`, `.claude/skills/blueprint-upgrade`: blueprint
+  releases and the upgrade path (a project has `.blueprint-version` instead of the changelog).
+- `renovate.json`: dependency updates (see CI).
 
 ## Visual regression and accessibility
 The look is locked by the component gallery (`/__gallery`):
@@ -194,8 +207,15 @@ After an intended change to the look:
 After upgrading `@playwright/test`, change the image tag in `.circleci/config.yml` too and regenerate all baselines.
 
 ## CI
-CircleCI (`.circleci/config.yml`) runs on every push: job `build` (typecheck, lint, unit tests, build,
-`contract:check`), job `gallery` (the gallery's functional, axe and screenshot tests in the Playwright image; a
+CircleCI (`.circleci/config.yml`) runs on every push: job `build` (`npm audit --audit-level=high`, typecheck, lint,
+unit tests, build, `contract:check`), job `gallery` (the gallery's functional, axe and screenshot tests in the Playwright image; a
 failed run keeps the report and diffs as artifacts) and job `image` (builds the production image, no push). Enable the project once on circleci.com for a repository
 created from the template. E2E tests against the app need a running API and OIDC provider, so they run locally
 (`npm run e2e`) before a UI change is pushed.
+
+Dependency updates come from [Renovate](https://docs.renovatebot.com/) (`renovate.json`; install the Renovate GitHub
+app once for the repository): weekly on Monday morning, grouped (react, tanstack, vite and vitest, eslint,
+playwright). Patch updates of dev dependencies merge themselves once CI is green and the release is 3 days old;
+everything else waits for review. The playwright group also moves the CircleCI gallery image; if the rendering
+changed, its `gallery` job fails until `npm run test:visual:update` is run and reviewed on the PR's branch. A failing
+`npm audit` usually needs `npm audit fix` (lockfile only) or a Renovate PR.

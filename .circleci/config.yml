@@ -16,6 +16,9 @@ jobs:
           paths:
             - ~/.npm
       - run:
+          name: Audit dependencies (high and critical)
+          command: npm audit --audit-level=high
+      - run:
           name: Typecheck
           command: npm run typecheck
       - run:

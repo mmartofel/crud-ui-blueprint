@@ -38,6 +38,9 @@ Ask what is missing; never guess a URL, role or realm.
 ## 2. Configure
 - [ ] `ui-manifest.yaml` `app`: `name`, `languages`.
 - [ ] `package.json` `name` (and the two `name` fields at the top of `package-lock.json`) = the project name.
+- [ ] `.blueprint-version`: the first released version in `CHANGELOG.md` (the first `## [x.y.z]` heading, not
+      `[Unreleased]`), without `v`. Then delete `CHANGELOG.md`: it is the blueprint's; upgrades read it from the
+      blueprint (`docs/UPGRADE.md`).
 - [ ] Brand in `src/styles/theme.css`, following `docs/DESIGN.md` "Changing the brand": a single colour replaces
       `--primary`, `--ring`, `--sidebar-primary`, `--sidebar-ring` in both blocks (light L 0.50-0.55, dark
       L 0.70-0.75, same hue and chroma) and the hue of the tinted neutrals; a tweakcn theme replaces the `:root` and
