@@ -12,10 +12,12 @@ themselves are built by the `crud-resource` skill, one resource at a time. Conve
 ## 1. Ask (one message, all at once)
 If the API was started from `docs/API-KICKSTART.md`, its README has a "Connect a UI" section with the `.env.local`
 values (OIDC, roles claim, proxy target, contract source, e2e users) and the role names: read it (ask for its path)
-and ask only for the rest (app name, languages, role labels, brand colour).
+and ask only for the rest (app name, languages, role labels, brand colour, image name).
 
 - **App name** (header, browser tab, page titles) and a **project name** for `package.json` (kebab-case, e.g.
   `order-ui`; propose one from the app name).
+- **Image name** of the production image (e.g. `ghcr.io/acme/order-ui`; default: the project name) and the API's
+  Kubernetes Service and port for `API_UPSTREAM` (the kickstart API: `<project>:8080`).
 - **Brand colour**: one colour (hex or oklch), or a theme exported from https://tweakcn.com (Tailwind v4 CSS). Without
   an answer the template's calm blue stays.
 - **Languages**, default first (`pl`, `en` have locale files; another needs `src/locales/<lang>/` copied from `en`
@@ -42,6 +44,10 @@ Ask what is missing; never guess a URL, role or realm.
       `.dark` blocks, keeping the extra tokens the file header names. Check contrast as DESIGN.md says (a -foreground on its
       colour at least 4.5:1, `ring` at least 3:1 on `background`, `card` and `sidebar`), adjust lightness until it
       passes, and show `/__gallery` in light and dark to the user.
+- [ ] Deployment: replace `crud-ui-blueprint` with the image name in `skaffold.yaml` (`build.artifacts[].image`)
+      and `k8s/app.yaml` (`image`), and with the project name in the other names of `skaffold.yaml`, `k8s/`
+      (Deployment, Service, ConfigMap) and `.circleci/config.yml` (job `image`). `k8s/configmap.yaml`: the OIDC values
+      and `API_UPSTREAM`. Check: `docker build` (or podman) and `kubectl kustomize k8s`.
 - [ ] `.env.local` from `.env.example`: `VITE_OIDC_*` (with the roles claim), `API_PROXY_TARGET`, `CONTRACT_SOURCE`,
       `E2E_*`.
 - [ ] `common.roles.<role>` labels in every `src/locales/<lang>/common.json`.

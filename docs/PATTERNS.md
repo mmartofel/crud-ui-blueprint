@@ -144,7 +144,7 @@ Everything else is generic and driven by the manifest. These are the only person
 | 1 | TS 6 deprecates `baseUrl` | `paths` without `baseUrl` |
 | 2 | The generated Zod schema had a Java-only regex `(?s)` from `@Pattern`, which crashed at import | fixed in the API (contract 3.0.0); `src/api/contract.test.ts` imports the schemas so CI catches it |
 | 2 | The contract at first had optional response fields, `*/*` responses and a partial PUT | API Stage 0 (3.0.0): required fields, `application/json`, PUT replaces the record and sends `version` |
-| 3 | Without `.env.local` the app hung on login | `requireEnv` names the missing `VITE_OIDC_*` variable; login errors render the error page |
+| 3 | Without `.env.local` the app hung on login | `requireConfig` (`src/config.ts`) names the missing `VITE_OIDC_*` variable; login errors render the error page |
 | 3 | After login the original query string was lost (router transition race on the callback URL) | `RequireAuth` renders nothing while the URL still has `code`/`error` + `state` |
 | 3 | "Sign in again" after a failed callback looped | `returnToFromLocation` strips OIDC callback params |
 | 3 | ESLint `react-hooks/refs` flagged RHF `field` objects and a ref read in render | destructure `useController` fields; capture focus in `onOpenAutoFocus` |
@@ -182,6 +182,9 @@ Everything else is generic and driven by the manifest. These are the only person
 | D4 | axe (`label-content-name-mismatch`, WCAG 2.5.3): the user menu button's `aria-label` ("Anna Kowalska – user menu") left out the visible role labels and initials | the button is named by its content (name, roles; the initials `aria-hidden`) plus a `sr-only` "– User menu" |
 | D4 | Screenshots of a section taller than the viewport drew the sticky app header and the mobile form bar over its middle | the visual spec injects `e2e/support/visual.css` (`stylePath`), which puts those two bars back into the flow |
 | D4 | Fonts render differently on macOS and Linux, so baselines from a Mac fail in CI | baselines are made only in the Playwright image (`scripts/visual.sh`, docker or podman, `node_modules` in a volume); the spec is skipped without `VISUAL=1` |
+| P1 | `VITE_*` variables are baked in at build time, so an image could not move between environments | the image writes `/config.js` from its environment at start (`docker/10-ui-runtime-config.envsh`); `src/config.ts` reads it, or `.env.local` in dev |
+| P1 | A CSP with `script-src 'self'` blocked the inline theme and language script of `index.html` | it became `/prepaint.js` (served and emitted by the Vite plugin from `scripts/prepaint.js`), so the CSP needs no hashes |
+| P1 | With a read-only root filesystem the nginx image only logged that it could not render the templates and started without the server (connection reset) | the entrypoint script fails when `/etc/nginx/conf.d` or `/tmp` is not writable; `k8s/app.yaml` mounts `emptyDir`s there |
 
 `tasks/lessons.md` has no entries: there were no user corrections. The decisions the user made are in the table
 above and in the git log.

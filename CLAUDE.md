@@ -37,6 +37,7 @@ skill.
 | `npm run test:visual:update` | Regenerate the screenshot baselines in that image; review the diff before committing |
 | `npm run contract:pull` | Copy the OpenAPI contract from `CONTRACT_SOURCE` (`.env.local`) into `contract/openapi.json` |
 | `npm run api:generate` | Regenerate `src/api/generated/` from `contract/openapi.json` |
+| `docker build -t <image> .` | Production image (podman works too); runtime variables in README "Deploy" |
 | `npm run contract:check` | Fail if `src/api/generated/` is out of date with the contract (CI; passes while there is no contract) |
 
 Configuration lives in `.env.local` (not committed; `.env.example` lists every variable): OIDC authority and client,
@@ -49,6 +50,7 @@ contract/openapi.json        # copy of the API contract; never edit by hand
 ui-manifest.yaml             # app name and languages; UI decisions per resource: columns, filters, form layout, permissions
 src/styles/theme.css         # the look in one place: colour tokens (light, dark), radius, shadows, font, type scale
 src/api/generated/           # orval output; never edit, regenerate instead
+src/config.ts                # OIDC settings: /config.js in the image, .env.local (VITE_*) in dev; never read `VITE_OIDC_*` elsewhere
 src/api/fetcher.ts           # the only HTTP client: base URL, bearer token, Problem Details -> ApiError
 src/api/sources.ts           # generated list/get per resource, for relations and related lists (one line each)
 src/auth/                    # OIDC provider, useAuth/useRoles hooks, RequireRole guard
@@ -61,6 +63,8 @@ src/gallery/                 # dev-only component gallery at /__gallery (fixture
 src/test/fixtures/           # persons/tasks manifest, schemas and labels for unit tests of the generic code and the gallery
 e2e/                         # Playwright tests: shell.spec.ts, one spec per resource, gallery{,-a11y,-visual}.spec.ts;
                              #   support/ (login, API data, axe), __screenshots__/ (baselines, made in Docker)
+Dockerfile  docker/          # production image: nginx (SPA, /api proxy, CSP and headers), runtime config written at start
+k8s/  skaffold.yaml          # kustomize Deployment/Service/ConfigMap, Ingress example; skaffold dev forwards to 5173
 docs/DESIGN.md               # visual rules: tokens, typography, density, elevation, status colours; the reference for screens
 docs/API-CONTRACT.md         # contract rules the API must follow (checked by the contract-auditor agent); hand it to API teams
 docs/API-CLAUDE.md           # CLAUDE.md template for a new Spring Boot API that serves this UI (copied as is)
@@ -99,6 +103,13 @@ A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never han
 - `docs/API-CLAUDE.md` stays generic: placeholders (`<project>`, `<groupId>`, `<realm>`, `<Resource>`) and the
   Order/Customer examples only; no names from the reference API except in `docs/API-KICKSTART.md`, which pins it
   (`spring-person-api-claude`, commit `f98300e`) as the model for the shared classes.
+
+## Production image
+- One image for every environment: configuration that differs per environment is read at container start
+  (`/config.js`, `src/config.ts`), never baked in through `import.meta.env`. A new setting goes into `src/config.ts`,
+  `docker/10-ui-runtime-config.envsh`, `k8s/configmap.yaml` and the README "Deploy" table together.
+- No inline scripts or new external origins in `index.html` or the app: the CSP is `script-src 'self'`. A new origin
+  the browser calls goes into `docker/templates/security-headers.inc.template` `connect-src`.
 
 ## UI conventions
 - Look: `docs/DESIGN.md` is the reference for every screen (tokens only, no raw colours; type scale, spacing,
@@ -150,9 +161,10 @@ runs the `contract-auditor` agent first and stops for approval of the manifest d
 ## Workflow
 - Commit only when asked, and push only when asked; "commit" alone does not mean push.
 - CircleCI (`.circleci/config.yml`) runs typecheck, lint, unit tests, build and `contract:check` (job `build`), and the
-  gallery's functional, axe and screenshot tests in the Playwright image (job `gallery`); e2e against the API stays
+  gallery's functional, axe and screenshot tests in the Playwright image (job `gallery`), and builds the production
+  image (job `image`, no push); e2e against the API stays
   local, so run `npm run e2e` before pushing a UI change.
-- After a push, check CI: `gh api repos/<owner>/<repo>/commits/<sha>/status` (contexts `ci/circleci: build` and `ci/circleci: gallery`; logs at
+- After a push, check CI: `gh api repos/<owner>/<repo>/commits/<sha>/status` (contexts `ci/circleci: build`, `ci/circleci: gallery` and `ci/circleci: image`; logs at
   the `target_url`). Poll every 30 s or slower. CircleCI must be enabled once for a new repository (circleci.com).
   - Take `<owner>/<repo>` from `git remote get-url origin` instead of typing it: a misspelled owner gives a 404
     that looks like an access or GitHub problem.

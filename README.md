@@ -17,7 +17,8 @@ What you get without writing a screen:
   delete with confirmation, relations between resources;
 - a calm, themable look: one file of design tokens (`src/styles/theme.css`, light and dark), Inter, rules in
   [docs/DESIGN.md](docs/DESIGN.md), and a component gallery at `/__gallery` in the dev server (no API or login needed);
-- unit tests (Vitest) for all of that, e2e tests (Playwright) for the shell and the gallery, CircleCI.
+- unit tests (Vitest) for all of that, e2e tests (Playwright) for the shell and the gallery, CircleCI;
+- a production image (nginx, configured at container start, `/api` proxied, CSP), Kubernetes manifests and Skaffold.
 
 Stack: Vite, React, TypeScript (strict), React Router, Tailwind CSS v4, shadcn/ui, TanStack Query and Table, React
 Hook Form + Zod, orval, i18next, Vitest + Testing Library, Playwright.
@@ -110,9 +111,55 @@ Keycloak is set up the same way for every API (realm roles `<realm>-viewer` and 
 | `.env.local` (from `.env.example`) | `VITE_OIDC_AUTHORITY`, `VITE_OIDC_CLIENT_ID`, `VITE_OIDC_ROLES_CLAIM`, `API_PROXY_TARGET`, `CONTRACT_SOURCE`, `E2E_WRITER_*`, `E2E_READER_*` |
 | `src/locales/<lang>/` | all screen text; a new language also needs a line in `src/i18n/resources.ts` |
 
+The production image does not read `.env.local`: it takes the same OIDC values from its environment (see Deploy).
+
 Without `.env.local` the app stops with a console error naming the missing `VITE_OIDC_*` variable; the gallery
 (`/__gallery`) works without it. The look (brand colour, surfaces, font) is changed in `src/styles/theme.css`, see
 [docs/DESIGN.md](docs/DESIGN.md).
+
+## Deploy
+One image for every environment: `Dockerfile` builds the app with Node and serves it with an unprivileged nginx on
+port 8080. The OIDC settings are read when the container starts (`docker/10-ui-runtime-config.envsh` writes
+`/config.js`, which `src/config.ts` reads instead of the build-time `VITE_*` values), and nginx proxies `/api/` to
+the API, so the browser sees one origin and the API needs no CORS.
+
+| Variable | Required | What |
+|---|---|---|
+| `OIDC_AUTHORITY` | yes | public URL of the OIDC realm, as the browser reaches it (e.g. `https://sso.example.com/realms/orders`) |
+| `OIDC_CLIENT_ID` | yes | the public client (Authorization Code + PKCE); its redirect URIs must include the UI's URL + `/*` |
+| `OIDC_ROLES_CLAIM` | no | dot path of the roles claim, default `realm_access.roles` |
+| `API_UPSTREAM` | yes | the API as nginx reaches it, without a path (e.g. `http://orders-api:8080`); `/api/...` is passed on unchanged |
+
+A missing or malformed value stops the container with a message naming it. nginx resolves `API_UPSTREAM` when it
+starts, so the host must exist by then (a Kubernetes Service does).
+
+```bash
+docker build -t my-ui .        # or podman
+docker run --rm -p 5173:8080 \
+  -e OIDC_AUTHORITY=http://localhost:8080/realms/my-realm -e OIDC_CLIENT_ID=my-realm-ui \
+  -e API_UPSTREAM=http://host.docker.internal:8081 my-ui   # podman: host.containers.internal
+```
+Port 5173 locally because the development OIDC client only accepts redirects there (stop `npm run dev` first);
+`npm run e2e` then runs against the image.
+
+What the image serves:
+- `/assets/*` (hashed): cached for a year, `immutable`; a missing file is a 404. `index.html`, `/config.js` and
+  `/prepaint.js` are `no-cache`; any other path falls back to `index.html` (client routes). `/healthz` for probes.
+- Security headers on every response: `Content-Security-Policy` (`script-src 'self'`; `connect-src 'self'` plus the
+  origin of `OIDC_AUTHORITY`; `frame-ancestors 'none'`; `style-src` allows inline styles, which Radix and sonner add),
+  `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`. They are in
+  `docker/templates/security-headers.inc.template`; a new origin the browser must call (e.g. a second API or an
+  error tracker) goes into `connect-src` there. No inline scripts: the theme and language script is `/prepaint.js`.
+- Token renewal uses the refresh token (a `fetch` to the authority), so the provider is never framed; the OIDC client
+  must issue refresh tokens (Keycloak does by default), because the CSP blocks the iframe fallback.
+- `Strict-Transport-Security` belongs where TLS ends (the Ingress or load balancer), not in this image.
+
+Kubernetes (`k8s/`, kustomize): `app.yaml` (Deployment with probes, resource limits, non-root, read-only root
+filesystem with `emptyDir`s for `/tmp` and `/etc/nginx/conf.d`; Service on 8080) and `configmap.yaml` (the variables
+above; set them per environment). `skaffold dev` builds the image and deploys `k8s/` to the current context,
+forwarding the UI to `localhost:5173`. `k8s/ingress.example.yaml` (not applied) shows one host routing `/api` to the
+API and `/` to the UI. CircleCI builds the image on every push (job `image`) but pushes it nowhere: add a registry
+login and `docker push` there to publish it.
 
 ## Repository
 - `src/components/app/`, `src/manifest/`, `src/auth/`, `src/i18n/`, `src/api/fetcher.ts`: the generic app, driven by
@@ -122,6 +169,7 @@ Without `.env.local` the app stops with a console error naming the missing `VITE
 - `.claude/skills/crud-ui-init`, `.claude/skills/crud-resource` (with `references/wiring.md` and `references/examples/`),
   `.claude/agents/contract-auditor.md`, `.claude/agents/ui-reviewer.md`, `.claude/hooks/typecheck.sh`.
 - `docs/API-CONTRACT.md` (for API teams), `docs/API-KICKSTART.md` and `docs/API-CLAUDE.md` (new Spring Boot API), `docs/PATTERNS.md` (lessons), `docs/DESIGN.md` (visual rules).
+- `Dockerfile`, `docker/` (nginx templates, runtime config), `k8s/`, `skaffold.yaml`: the production image and its deployment (see Deploy).
 
 ## Visual regression and accessibility
 The look is locked by the component gallery (`/__gallery`):
@@ -147,7 +195,7 @@ After upgrading `@playwright/test`, change the image tag in `.circleci/config.ym
 
 ## CI
 CircleCI (`.circleci/config.yml`) runs on every push: job `build` (typecheck, lint, unit tests, build,
-`contract:check`) and job `gallery` (the gallery's functional, axe and screenshot tests in the Playwright image; a
-failed run keeps the report and diffs as artifacts). Enable the project once on circleci.com for a repository
+`contract:check`), job `gallery` (the gallery's functional, axe and screenshot tests in the Playwright image; a
+failed run keeps the report and diffs as artifacts) and job `image` (builds the production image, no push). Enable the project once on circleci.com for a repository
 created from the template. E2E tests against the app need a running API and OIDC provider, so they run locally
 (`npm run e2e`) before a UI change is pushed.

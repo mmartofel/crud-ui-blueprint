@@ -17,14 +17,37 @@ function yamlPlugin(): Plugin {
   }
 }
 
-// Fills index.html from ui-manifest.yaml `app`: the <title> and the languages of the pre-paint language script.
+const readApp = () =>
+  (parse(readFileSync('ui-manifest.yaml', 'utf8')) as { app: { name: string; languages: string[] } }).app
+
+// The pre-paint script (scripts/prepaint.js) with the languages of ui-manifest.yaml `app.languages`.
+const prepaintScript = () =>
+  `${readFileSync('scripts/prepaint.js', 'utf8')}prepaint(${JSON.stringify(readApp().languages)})\n`
+
+// Fills index.html from ui-manifest.yaml `app`: the <title>, and /prepaint.js (theme and language before the first
+// paint; served in dev, emitted in the build). The build also loads /config.js, the runtime configuration that the
+// production image writes at startup (src/config.ts). Both are files, not inline scripts, for the CSP.
 function manifestHtmlPlugin(): Plugin {
   return {
     name: 'manifest-html',
-    transformIndexHtml(html) {
-      const { app } = parse(readFileSync('ui-manifest.yaml', 'utf8')) as { app: { name: string; languages: string[] } }
-      const escaped = app.name.replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      return html.replace('%APP_NAME%', escaped).replace('%APP_LANGUAGES%', JSON.stringify(app.languages))
+    configureServer(server) {
+      server.middlewares.use('/prepaint.js', (_req, res) => {
+        res.setHeader('Content-Type', 'text/javascript')
+        res.end(prepaintScript())
+      })
+    },
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'prepaint.js', source: prepaintScript() })
+      // A placeholder for hosts without the image's entrypoint (`npm run preview`): the app then uses the VITE_* values.
+      this.emitFile({ type: 'asset', fileName: 'config.js', source: '// Replaced at container start (docker/10-ui-runtime-config.envsh).\n' })
+    },
+    transformIndexHtml(html, ctx) {
+      const escaped = readApp().name.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      const script = (src: string) => ({ tag: 'script', attrs: { src }, injectTo: 'head' as const })
+      return {
+        html: html.replace('%APP_NAME%', escaped),
+        tags: ctx.server ? [script('/prepaint.js')] : [script('/prepaint.js'), script('/config.js')],
+      }
     },
   }
 }

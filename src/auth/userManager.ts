@@ -1,23 +1,18 @@
 import { UserManager, WebStorageStateStore } from 'oidc-client-ts'
+import { requireConfig } from '@/config'
 import i18n from '@/i18n'
 import { returnToFromLocation } from './returnTo'
-
-function requireEnv(name: 'VITE_OIDC_AUTHORITY' | 'VITE_OIDC_CLIENT_ID'): string {
-  const value = import.meta.env[name]
-  if (!value) throw new Error(`${name} is not set: copy .env.example to .env.local (see README).`)
-  return value
-}
 
 let userManager: UserManager | undefined
 
 /**
  * The one OIDC client of the app (Keycloak, Authorization Code + PKCE). Created on first use, so modules that import
- * `@/auth` load without the OIDC variables (the dev-only component gallery has none).
+ * `@/auth` load without the OIDC settings (the dev-only component gallery has none).
  */
 export function getUserManager(): UserManager {
   userManager ??= new UserManager({
-    authority: requireEnv('VITE_OIDC_AUTHORITY'),
-    client_id: requireEnv('VITE_OIDC_CLIENT_ID'),
+    authority: requireConfig('OIDC_AUTHORITY'),
+    client_id: requireConfig('OIDC_CLIENT_ID'),
     redirect_uri: `${window.location.origin}/`,
     post_logout_redirect_uri: `${window.location.origin}/`,
     scope: 'openid profile email',

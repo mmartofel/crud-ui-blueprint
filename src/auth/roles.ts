@@ -1,11 +1,9 @@
 import { useMemo } from 'react'
 import { useAuth } from 'react-oidc-context'
+import { rolesClaim } from '@/config'
 
-/** The access token claim with the user's roles, as a dot path (`VITE_OIDC_ROLES_CLAIM`, Keycloak's by default). */
-const ROLES_CLAIM = import.meta.env.VITE_OIDC_ROLES_CLAIM || 'realm_access.roles'
-
-/** Reads the roles claim (a dot path) from a JWT access token; returns [] for a missing or malformed token. */
-export function decodeRoles(accessToken: string | undefined, claim = ROLES_CLAIM): string[] {
+/** Reads the roles claim (a dot path, `OIDC_ROLES_CLAIM`) from a JWT access token; returns [] for a missing or malformed token. */
+export function decodeRoles(accessToken: string | undefined, claim = rolesClaim()): string[] {
   if (!accessToken) return []
   try {
     const payload = accessToken.split('.')[1]

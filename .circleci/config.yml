@@ -60,8 +60,21 @@ jobs:
       - store_artifacts:
           path: test-results
 
+  # The production image (Dockerfile). Built only, not pushed: to publish it, add a registry login and
+  # `docker push` with your image name and tag (README "Deploy").
+  image:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build the production image
+          command: docker build -t crud-ui-blueprint:${CIRCLE_SHA1} .
+
 workflows:
   build:
     jobs:
       - build
       - gallery
+      - image

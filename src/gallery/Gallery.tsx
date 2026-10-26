@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { User } from 'oidc-client-ts'
 import { AuthContext, type AuthContextProps } from 'react-oidc-context'
 import { createMemoryRouter, RouterProvider } from 'react-router'
+import { rolesClaim } from '@/config'
 import { AppShell } from '@/components/app/AppShell'
 import { ThemeProvider } from '@/components/app/theme/ThemeProvider'
 import { Toaster } from '@/components/ui/sonner'
@@ -17,9 +18,9 @@ const roles: Record<GalleryRole, string[]> = {
   reader: ['person-viewer'],
 }
 
-/** An unsigned access token whose roles claim (`VITE_OIDC_ROLES_CLAIM`, a dot path) holds `values`. */
+/** An unsigned access token whose roles claim (`rolesClaim()`, a dot path) holds `values`. */
 function fakeToken(values: string[]): string {
-  const path = (import.meta.env.VITE_OIDC_ROLES_CLAIM || 'realm_access.roles').split('.')
+  const path = rolesClaim().split('.')
   const claims = path.reduceRight<unknown>((inner, key) => ({ [key]: inner }), values)
   const encode = (value: object) => btoa(JSON.stringify(value)).replace(/=+$/, '')
   return `${encode({ alg: 'none' })}.${encode(claims as object)}.`
