@@ -15,6 +15,13 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+### Added
+- App footer (#5): the blueprint release the app was built from, the API's running version and its status (available,
+  degraded with the reason, unavailable), checked every 30 s from the public Actuator endpoint `/actuator/health`;
+  the version is read from `/actuator/info` when the API becomes reachable. The dev server and the image's nginx proxy only these two paths. Recommended for APIs in
+  `docs/API-CONTRACT.md` "Status endpoints" and `docs/API-CLAUDE.md`; an API without them still works (the footer
+  shows the contract version and only whether the API answers). No migration needed.
+
 ## [1.1.3] - 2026-10-26
 
 Corrects a 1.1.2 fix (#3). No migration needed.
