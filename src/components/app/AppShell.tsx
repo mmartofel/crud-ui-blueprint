@@ -76,6 +76,13 @@ export function AppShell() {
     <SidebarProvider open={open} onOpenChange={onOpenChange}>
       <a
         href="#main"
+        // No #main history entry: on a form with unsaved changes the blocker would meet it as an unknown navigation.
+        onClick={(event) => {
+          event.preventDefault()
+          const main = document.getElementById('main')
+          main?.focus({ preventScroll: true })
+          main?.scrollIntoView()
+        }}
         className="sr-only z-50 rounded-md bg-popover text-popover-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:shadow-md focus:ring-[3px] focus:ring-ring focus:outline-none"
       >
         {t('common.skipToContent')}

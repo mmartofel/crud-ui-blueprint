@@ -81,15 +81,17 @@ interface ResourceFormProps<TRecord extends VersionedRecord, TSchema extends z.Z
  * stale-version reload, unsaved-changes guard, success toast and navigation to the detail page.
  */
 /**
- * Below md a focused field scrolls clear of the sticky action bar and footer (the scroll padding in src/index.css).
- * The browser applies that padding only when it scrolls at all, not to a field already inside the screen but behind
- * the bar. Fields in portals (pickers) and the actions themselves are left alone.
+ * Below md a focused field scrolls clear of the sticky action bar and footer (the scroll padding in src/index.css),
+ * with its label and message (`data-form-field`, FormFields.tsx). The browser applies that padding only when it scrolls
+ * at all, not to a field already inside the screen but behind the bar. Fields in portals (pickers) and the actions
+ * themselves are left alone.
  */
 function scrollClearOfActions(event: FocusEvent<HTMLFormElement>) {
   const target = event.target
   if (!window.matchMedia('(width < 48rem)').matches) return
   if (!event.currentTarget.contains(target) || target.closest('[data-form-actions]')) return
-  target.scrollIntoView({ block: 'nearest' })
+  const field = target.closest('[data-form-field]') ?? target
+  field.scrollIntoView({ block: 'nearest' })
 }
 
 export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.ZodObject>({

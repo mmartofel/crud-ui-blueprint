@@ -34,15 +34,17 @@ test('the reader sees no write actions', async ({ page }) => {
   const list = page.locator('#list')
   await expect(detail.getByRole('button', { name: 'Delete' }).first()).toBeVisible()
   await expect(list.getByRole('button', { name: /^Actions for / }).first()).toBeVisible()
-  await expect(page.locator('#states').getByRole('button', { name: 'New' })).toBeVisible()
+  // Exact names: a task link such as "Renew the office lease" also contains "New".
+  await expect(list.getByRole('link', { name: 'New', exact: true })).toBeVisible()
+  await expect(page.locator('#states').getByRole('button', { name: 'New', exact: true })).toBeVisible()
 
   await page.getByLabel('Role').click()
   await page.getByRole('option', { name: 'Reader (read only)' }).click()
 
   await expect(detail.getByRole('button', { name: 'Delete' })).toHaveCount(0)
-  await expect(list.getByRole('link', { name: 'New' })).toHaveCount(0)
+  await expect(list.getByRole('link', { name: 'New', exact: true })).toHaveCount(0)
   await expect(list.getByRole('button', { name: /^Actions for / })).toHaveCount(0)
-  await expect(page.locator('#states').getByRole('button', { name: 'New' })).toHaveCount(0)
+  await expect(page.locator('#states').getByRole('button', { name: 'New', exact: true })).toHaveCount(0)
 })
 
 test('the row menu deletes a record after confirmation; cancel returns focus to the menu', async ({ page }) => {
@@ -160,7 +162,7 @@ test('the footer stays in view while the page scrolls; on mobile the form action
 })
 
 for (const { width, height } of [{ width: 375, height: 420 }, { width: 768, height: 1024 }, { width: 1440, height: 640 }]) {
-  test(`at ${width}x${height} a focused form control stays clear of the sticky header, footer and form actions`, async ({ page }) => {
+  test(`at ${width}x${height} a focused form field stays clear of the sticky header, footer and form actions`, async ({ page }) => {
     await page.setViewportSize({ width, height })
     await openGallery(page)
     const form = page.locator('form').first()
@@ -170,7 +172,8 @@ for (const { width, height } of [{ width: 375, height: 420 }, { width: 768, heig
       const hidden = await page.evaluate(() => {
         const focused = document.activeElement as HTMLElement
         if (!focused.closest('form')) return null
-        const box = focused.getBoundingClientRect()
+        // The whole field: label, control and message.
+        const box = (focused.closest('[data-form-field]') ?? focused).getBoundingClientRect()
         const top = document.querySelector('header')!.getBoundingClientRect().bottom
         let bottom = document.querySelector('footer')!.getBoundingClientRect().top
         const actions = focused.closest('form')!.querySelector('[data-form-actions]')!
@@ -199,4 +202,33 @@ test('a new page opens at the top; sorting keeps the scroll position', async ({ 
   await sort.click()
   await expect(page.locator('#list').getByRole('columnheader').first()).toHaveAttribute('aria-sort', /ascending|descending/)
   expect(await page.evaluate(() => scrollY)).toBe(before)
+})
+
+for (const width of [375, 1440]) {
+  test(`at ${width} px keyboard paging moves view and focus to the top of the list`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 700 })
+    await openGallery(page)
+    const list = page.getByRole('region', { name: 'Persons' })
+    const next = list.getByRole('button', { name: 'Next page' })
+    await next.focus()
+    await page.keyboard.press('Enter')
+
+    await expect(list).toBeFocused()
+    await expect(list).toContainText('21–24 of 24')
+    const top = await list.evaluate((el) => el.getBoundingClientRect().top)
+    expect(top).toBeGreaterThanOrEqual(56 - 1)
+    expect(top).toBeLessThan(120)
+  })
+}
+
+test('the skip link moves focus to the content without a history entry', async ({ page }) => {
+  await openGallery(page)
+  const entries = await page.evaluate(() => history.length)
+  await page.keyboard.press('Tab')
+  const skip = page.getByRole('link', { name: 'Skip to content' })
+  await expect(skip).toBeFocused()
+  await page.keyboard.press('Enter')
+
+  await expect(page.locator('#main')).toBeFocused()
+  expect(await page.evaluate(() => [location.hash, history.length])).toEqual(['', entries])
 })

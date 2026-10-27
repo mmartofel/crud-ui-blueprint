@@ -15,6 +15,22 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-10-27
+
+Completes the focus and scroll handling of 1.2.2, found in review of the first project on it. No migration needed.
+
+### Fixed
+- Keyboard paging no longer leaves focus on a pagination button that has scrolled off screen (a regression in 1.2.2):
+  another page of a list scrolls the list card to the top and focuses it (`ResourceList`; the card is a region named
+  after the resource). All list state changes keep the scroll position (`listState.ts`).
+- Below `md`, a filter or search no longer jumps the page: the mobile cards opt out of scroll anchoring (`DataTable`).
+- The skip link moves focus to the content without adding a `#main` history entry, which on a form with unsaved
+  changes made React Router warn about a blocked unknown navigation (`AppShell`).
+- Below `md`, a focused form field scrolls clear of the action bar with its label and error message, not only the
+  control (`data-form-field` in `FormFields`, `ResourceForm`).
+- The gallery test "the reader sees no write actions" matched the task "Renew the office lease" as a "New" link and
+  failed whenever the tasks list loaded first; its locators are exact now and it checks the writer sees "New" first.
+
 ## [1.2.2] - 2026-10-27
 
 Keyboard focus and scroll position with the sticky footer of 1.2.1. No migration needed.
@@ -172,7 +188,8 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.3...v1.2.0
