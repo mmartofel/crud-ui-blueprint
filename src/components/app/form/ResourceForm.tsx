@@ -182,11 +182,11 @@ export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.
 
   return (
     <>
-      {/* Below md a focused field scrolls clear of the sticky action bar (scroll margin). */}
+      {/* Below md a focused field scrolls clear of the sticky action bar and the footer below it (scroll margin). */}
       <form
         noValidate
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-6 max-md:**:scroll-mb-24"
+        className="flex flex-col gap-6 max-md:**:scroll-mb-[calc(6rem+var(--app-footer-height))]"
       >
         {required.length > 0 && <p className="-mb-2 text-caption text-muted-foreground">{t('common.form.requiredHint')}</p>}
         {formError && (
@@ -218,8 +218,8 @@ export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.
             </dl>
           </SectionCard>
         )}
-        {/* Below md the actions stick to the bottom of the screen, full width, so Save is always in reach. */}
-        <div className="sticky bottom-0 z-10 -mx-4 -mb-6 grid grid-cols-2 gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur-sm md:static md:mx-0 md:mb-0 md:flex md:justify-end md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+        {/* Below md the actions stick above the sticky footer, full width, so Save is always in reach. */}
+        <div className="sticky bottom-(--app-footer-height) z-10 -mx-4 -mb-6 grid grid-cols-2 gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur-sm md:static md:mx-0 md:mb-0 md:flex md:justify-end md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
           <Button asChild variant="outline">
             <Link to={cancelHref}>{t('common.actions.cancel')}</Link>
           </Button>

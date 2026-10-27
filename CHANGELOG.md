@@ -15,6 +15,20 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-27
+
+Footer fixes after the first project took over 1.2.0. No migration needed; projects regenerate their screenshot
+baselines (`npm run test:visual:update`).
+
+### Changed
+- The app footer sticks to the bottom of the screen, so the API status is always in view on long pages. Its height is
+  `--app-footer-height` (`src/index.css`); the form's mobile action bar and the toasts sit above it.
+
+### Fixed
+- The footer's status popover keeps the 16 px page gutter at 375 px (it was 4 px from the right edge).
+- The gallery's open status details show a fixed contract version, so a project's footer screenshots no longer
+  change with every contract pull.
+
 ## [1.2.0] - 2026-10-27
 
 Adds the app footer with the blueprint release and the API's status (#5). No migration needed.
@@ -145,7 +159,8 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.3...v1.2.0
 [1.1.3]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.1...v1.1.2

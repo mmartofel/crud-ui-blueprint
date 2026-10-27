@@ -138,3 +138,23 @@ test('the sidebar collapses to icons and the active item is marked', async ({ pa
   await expect(nav.getByRole('link', { name: 'Persons' })).toBeVisible()
   expect(await page.evaluate(() => localStorage.getItem('sidebar'))).toBe('collapsed')
 })
+
+test('the footer stays in view while the page scrolls; on mobile the form actions sit above it', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 })
+  await openGallery(page)
+  const footer = page.getByRole('contentinfo')
+  const save = page.locator('form').first().getByRole('button', { name: 'Save' })
+
+  await save.scrollIntoViewIfNeeded()
+  await page.locator('#form').scrollIntoViewIfNeeded()
+  await expect(footer).toBeInViewport()
+  const footerBox = await footer.boundingBox()
+  const saveBox = await save.boundingBox()
+  expect(footerBox!.y + footerBox!.height).toBeCloseTo(800, 0)
+  expect(saveBox!.y + saveBox!.height).toBeLessThanOrEqual(footerBox!.y)
+
+  await footer.getByRole('button', { name: /^API status: / }).click()
+  const details = await page.getByRole('dialog', { name: 'API status' }).boundingBox()
+  expect(details!.x).toBeGreaterThanOrEqual(16)
+  expect(details!.x + details!.width).toBeLessThanOrEqual(375 - 16)
+})
