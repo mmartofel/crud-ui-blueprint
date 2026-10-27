@@ -15,12 +15,17 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-27
+
+Adds the app footer with the blueprint release and the API's status (#5). No migration needed.
+
 ### Added
 - App footer (#5): the blueprint release the app was built from, the API's running version and its status (available,
   degraded with the reason, unavailable), checked every 30 s from the public Actuator endpoint `/actuator/health`;
-  the version is read from `/actuator/info` when the API becomes reachable. The dev server and the image's nginx proxy only these two paths. Recommended for APIs in
-  `docs/API-CONTRACT.md` "Status endpoints" and `docs/API-CLAUDE.md`; an API without them still works (the footer
-  shows the contract version and only whether the API answers). No migration needed.
+  the version is read from `/actuator/info` when the API becomes reachable. The dev server and the image's nginx
+  proxy only these two paths. Recommended for APIs in `docs/API-CONTRACT.md` "Status endpoints" and
+  `docs/API-CLAUDE.md`; an API without them still works (the footer shows the contract version and only whether the
+  API answers).
 
 ## [1.1.3] - 2026-10-26
 
@@ -140,7 +145,8 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.3...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.3...v1.2.0
 [1.1.3]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.0...v1.1.1
