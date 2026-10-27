@@ -81,4 +81,15 @@
       --app-footer-height: 2.5rem;
     }
   }
+  /* Focus and in-page scrolling stop clear of the sticky header (h-14), the footer and, below md, a form's sticky
+     action bar (`data-form-actions`, about 4.3rem). */
+  html {
+    scroll-padding-top: 3.5rem;
+    scroll-padding-bottom: var(--app-footer-height);
+    @media (width < 48rem) {
+      &:has([data-form-actions]) {
+        scroll-padding-bottom: calc(var(--app-footer-height) + 4.5rem);
+      }
+    }
+  }
 }

@@ -15,6 +15,19 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-10-27
+
+Keyboard focus and scroll position with the sticky footer of 1.2.1. No migration needed.
+
+### Fixed
+- A focused element no longer ends up under the sticky header or footer from `md` (the document's scroll padding in
+  `src/index.css`), nor, below `md`, under the form's sticky action bar, also when the field is already on screen
+  (`ResourceForm` scrolls it clear on focus; the bar is marked `data-form-actions`).
+- A new page opens at the top instead of at the previous page's scroll position (`ScrollRestoration` in `AppShell`);
+  back and forward restore the position. A list's search, sort, filters and page size keep it; another page of the
+  list starts at the top.
+- The footer's status popover keeps a gap above the footer.
+
 ## [1.2.1] - 2026-10-27
 
 Footer fixes after the first project took over 1.2.0. No migration needed; projects regenerate their screenshot
@@ -159,7 +172,8 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.3...v1.2.0
 [1.1.3]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.1.2...v1.1.3

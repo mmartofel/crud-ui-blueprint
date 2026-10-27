@@ -116,7 +116,8 @@ export function useListState(resource: Resource, schema?: QuerySchema) {
           const filters = { ...current.filters, ...changes.filters }
           return writeListState(prev, { ...current, ...(resetPage ? { page: 0 } : {}), ...changes, filters }, list)
         },
-        { replace: options?.replace },
+        // Search, sort, filters and page size keep the scroll position; another page starts at the top.
+        { replace: options?.replace, preventScrollReset: !('page' in changes) },
       ),
     [list, schema, setParams],
   )

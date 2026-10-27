@@ -97,10 +97,13 @@ Dialog titles use `text-section-title`.
 - **Header** (`h-14`, `bg-background`, bottom border, sticky): the sidebar toggle and the breadcrumbs, list › record
   (by the manifest's `display`) › edit. Below `md` only the last two crumbs. Page actions stay in `PageHeader`.
 - **Content**: `px-4 py-6`, `md:px-6`, `lg:px-8`, centred with a max width by page kind: lists `max-w-7xl`,
-  detail `max-w-6xl`, forms `max-w-4xl`.
+  detail `max-w-6xl`, forms `max-w-4xl`. A new page opens at the top, back and forward restore the position
+  (`ScrollRestoration` in `AppShell`); a list's search, sort, filters and page size keep it, another page starts at
+  the top.
 - **Footer** (`AppFooter`, `bg-background`, top border): sticks to the bottom of the screen, so it is always in
   view, one line high (`--app-footer-height` in `src/index.css`: 52 px below `md`, 40 px from `md`); the form's mobile
-  action bar and the toasts sit above it. The content's horizontal padding, `text-caption text-muted-foreground`. Left the blueprint release, right the API
+  action bar and the toasts sit above it. The document's scroll padding (same file) keeps a focused element clear of
+  the header, the footer and, below `md`, the form's action bar. The content's horizontal padding, `text-caption text-muted-foreground`. Left the blueprint release, right the API
   version (marked "contract" when the API does not report its own) and the API status: a 8 px dot (`success`,
   `warning`, `destructive`; `muted-foreground` while checking) with the status name, so colour is never the only
   signal. It is a ghost button (44 px below `md`) that opens a popover with the status, the problem, the running and

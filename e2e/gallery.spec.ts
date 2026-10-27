@@ -158,3 +158,45 @@ test('the footer stays in view while the page scrolls; on mobile the form action
   expect(details!.x).toBeGreaterThanOrEqual(16)
   expect(details!.x + details!.width).toBeLessThanOrEqual(375 - 16)
 })
+
+for (const { width, height } of [{ width: 375, height: 420 }, { width: 768, height: 1024 }, { width: 1440, height: 640 }]) {
+  test(`at ${width}x${height} a focused form control stays clear of the sticky header, footer and form actions`, async ({ page }) => {
+    await page.setViewportSize({ width, height })
+    await openGallery(page)
+    const form = page.locator('form').first()
+    await form.getByRole('textbox').first().focus()
+
+    for (let i = 0; i < 30; i++) {
+      const hidden = await page.evaluate(() => {
+        const focused = document.activeElement as HTMLElement
+        if (!focused.closest('form')) return null
+        const box = focused.getBoundingClientRect()
+        const top = document.querySelector('header')!.getBoundingClientRect().bottom
+        let bottom = document.querySelector('footer')!.getBoundingClientRect().top
+        const actions = focused.closest('form')!.querySelector('[data-form-actions]')!
+        if (getComputedStyle(actions).position === 'sticky' && !actions.contains(focused)) bottom = actions.getBoundingClientRect().top
+        return box.top < top - 0.5 || box.bottom > bottom + 0.5 ? `${focused.outerHTML.slice(0, 80)} at ${box.top}-${box.bottom}, clear ${top}-${bottom}` : ''
+      })
+      if (hidden === null) break
+      expect(hidden).toBe('')
+      await page.keyboard.press('Tab')
+    }
+  })
+}
+
+test('a new page opens at the top; sorting keeps the scroll position', async ({ page }) => {
+  await openGallery(page)
+  await page.locator('#dialogs').scrollIntoViewIfNeeded()
+  expect(await page.evaluate(() => scrollY)).toBeGreaterThan(0)
+
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Tasks' }).click()
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
+
+  const sort = page.locator('#list').getByRole('columnheader').getByRole('button').first()
+  await sort.scrollIntoViewIfNeeded()
+  const before = await page.evaluate(() => scrollY)
+  expect(before).toBeGreaterThan(0)
+  await sort.click()
+  await expect(page.locator('#list').getByRole('columnheader').first()).toHaveAttribute('aria-sort', /ascending|descending/)
+  expect(await page.evaluate(() => scrollY)).toBe(before)
+})

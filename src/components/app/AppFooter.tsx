@@ -70,10 +70,11 @@ export function ApiStatusIndicator({ status, checkedAt }: { status?: ApiStatus; 
           <span className="text-caption">{label}</span>
         </Button>
       </PopoverTrigger>
-      {/* Keeps the page gutter (16 px) on narrow screens and shrinks to the space left between it. */}
+      {/* Keeps the page gutter (16 px) on narrow screens and shrinks to the space left between it; clear of the footer. */}
       <PopoverContent
         align="end"
         side="top"
+        sideOffset={12}
         collisionPadding={16}
         className="w-88 max-w-(--radix-popover-content-available-width)"
         aria-label={t('common.footer.statusTerm')}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useLocation } from 'react-router'
+import { Outlet, ScrollRestoration, useLocation } from 'react-router'
 import { Separator } from '@/components/ui/separator'
 import { isMac, SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -81,6 +81,8 @@ export function AppShell() {
         {t('common.skipToContent')}
       </a>
 
+      {/* A new page opens at the top; back and forward restore the position (list state keeps it, listState.ts). */}
+      <ScrollRestoration />
       <AppSidebar />
 
       <SidebarInset className="min-w-0">
