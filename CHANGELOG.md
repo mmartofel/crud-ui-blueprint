@@ -15,6 +15,10 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+### Fixed
+- The setup line of the crud-resource eval `contract-change-new-field` creates `src/features/` before copying the
+  reference feature into it. The blueprint has no such folder, so the copy failed.
+
 ## [2.0.2] - 2026-11-07
 
 Fixes the upgrade script for projects that already made part of a change themselves. No migration needed.
