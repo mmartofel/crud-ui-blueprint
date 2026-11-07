@@ -15,6 +15,15 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-11-07
+
+Fixes the upgrade script for projects that already made part of a change themselves. No migration needed.
+
+### Fixed
+- `scripts/blueprint-upgrade.sh` no longer refuses the whole patch when the project already removed a file the
+  blueprint deletes or renames away, as happened with `k8s/` on the way to 2.0.0. It leaves those files out, and a
+  rename target the project already has, and lists them under "Left out" (`docs/UPGRADE.md`).
+
 ## [2.0.1] - 2026-11-07
 
 Fixes the reference spec after the 10-row default of 2.0.0. No migration needed.
@@ -244,7 +253,10 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.2...HEAD
+[2.0.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.1...v2.0.2
+[2.0.1]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.3...v2.0.0
 [1.2.3]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/mmartofel/crud-ui-blueprint/compare/v1.2.0...v1.2.1
