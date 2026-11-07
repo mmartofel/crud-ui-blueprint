@@ -15,6 +15,10 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-11-07
+
+Fixes the reference spec after the 10-row default of 2.0.0. No migration needed.
+
 ### Fixed
 - The persons reference spec "search, page size, sorting and paging are kept in the URL" picked 10 rows, the new
   default of 2.0.0, which the URL leaves out, so it always failed. It picks 20 and creates 21 records now.
