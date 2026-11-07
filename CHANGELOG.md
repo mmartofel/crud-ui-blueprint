@@ -15,6 +15,54 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-07
+
+Deployment taken back from person-ui-v2, the first project built from this template: one method for the UI and its
+API repo (`docs/DEPLOY-CONVENTION.md`), Skaffold profiles over kustomize overlays, and sign-in served on the UI's own
+host, so no file names a cluster, host, registry or namespace. MAJOR because `k8s/` is replaced by `deploy/`.
+
+### Added
+- `deploy/`: `base/` (Deployment, Service, ConfigMap, the `app.kubernetes.io/*` labels), `overlays/local` (the
+  default, forwarded to `localhost:5173`), `overlays/openshift` (Route without a host, Topology labels and arrows),
+  `overlays/kubernetes` (Ingress without a host) and `environments/example` (git-ignored `environments/<env>/`).
+- `skaffold.yaml`: profiles `openshift` and `kubernetes`, `DEPLOY_OVERLAY` for an environment overlay, `gitCommit`
+  tags, and `deploy/build-image.sh`, a custom builder that uses docker or podman for the cluster's platform.
+- `docs/DEPLOY-CONVENTION.md`: the deployment rules shared with the API repo, which gets it as a third file from the
+  kickstart.
+- `OIDC_UPSTREAM`: the image's nginx proxies the realm's public paths (`/realms/<realm>/` and `/resources/`, never the
+  master realm or `/admin`) to Keycloak, and `OIDC_AUTHORITY` may be a path (`/realms/<realm>`) resolved against the
+  page's origin (`src/config.ts`). A full-URL authority without `OIDC_UPSTREAM` works as before.
+- CI renders every overlay and the example environment with kustomize.
+- `.gitignore` and `.dockerignore` keep local registry logins (`registry-login.sh`, `quay.sh`) and tarballs out of git
+  and the image.
+
+### Changed
+- Security headers are included per nginx location instead of per server, so Keycloak's login page keeps its own CSP
+  through the proxy. `X-Forwarded-Proto` is the scheme the router or Ingress forwarded, else nginx's own.
+- The footer reads "Blueprint version used to generate UI: x" and "API version connected: x" (Polish too). The
+  gallery screenshots do not show the footer text, so their baselines are unchanged.
+- The reference resources' lists default to 10 rows (`pageSize: 10`).
+- `docs/API-CLAUDE.md`, `docs/API-KICKSTART.md`, `CLAUDE.md` "Starting a new API": a new API deploys from `deploy/`
+  with `deploy/ensure-secrets.sh` as a Skaffold hook. Its Keycloak runs with `KC_PROXY_HEADERS=xforwarded` and no
+  hostname, and the UI client has `rootUrl ${authBaseUrl}` with relative redirect URIs and no secret values in the
+  realm file. The reference for `deploy/` is Person API 3.6.1 (`6a795fe`). `docs/API-CONTRACT.md` section 10 adds the
+  sign-in pitfall.
+- `blueprint-upgrade` skill: commit a subset of the staged upgrade only with `git commit -- <paths>`.
+
+### Removed
+- `k8s/` (`app.yaml`, `configmap.yaml`, `ingress.example.yaml`, `kustomization.yaml`).
+
+### Migration
+- Move the project's `k8s/` into `deploy/`: names and image into `deploy/base/app.yaml`, `skaffold.yaml` and the
+  overlays (Route, Ingress, `topology-ui.yaml`), values into `deploy/base/configmap.yaml`, a host or TLS into
+  `deploy/environments/<env>/`. Then delete `k8s/` and check with `kubectl kustomize deploy/overlays/<x>`.
+- For sign-in on the UI's host, set `OIDC_AUTHORITY: /realms/<realm>` and `OIDC_UPSTREAM` (the Keycloak Service). The
+  API's Keycloak then needs `KC_PROXY_HEADERS=xforwarded` and the UI client with `rootUrl ${authBaseUrl}` and relative
+  redirect URIs. Otherwise keep the full-URL authority.
+- Copy `docs/DEPLOY-CONVENTION.md` into the API repo and keep both copies identical.
+- A project that kept its own footer wording keeps it (shared `common.json`); `e2e/shell.spec.ts` checks the text.
+- A resource's `pageSize` stays as it is in the project's manifest; nothing to do.
+
 ## [1.2.3] - 2026-10-27
 
 Completes the focus and scroll handling of 1.2.2, found in review of the first project on it. No migration needed.

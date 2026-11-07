@@ -18,7 +18,8 @@ What you get without writing a screen:
 - a calm, themable look: one file of design tokens (`src/styles/theme.css`, light and dark), Inter, rules in
   [docs/DESIGN.md](docs/DESIGN.md), and a component gallery at `/__gallery` in the dev server (no API or login needed);
 - unit tests (Vitest) for all of that, e2e tests (Playwright) for the shell and the gallery, CircleCI;
-- a production image (nginx, configured at container start, `/api` proxied, CSP), Kubernetes manifests and Skaffold.
+- a production image (nginx, configured at container start, `/api` and sign-in proxied, CSP), and Skaffold with
+  kustomize overlays for a local cluster, OpenShift and Kubernetes (`docs/DEPLOY-CONVENTION.md`).
 
 Stack: Vite, React, TypeScript (strict), React Router, Tailwind CSS v4, shadcn/ui, TanStack Query and Table, React
 Hook Form + Zod, orval, i18next, Vitest + Testing Library, Playwright.
@@ -26,7 +27,7 @@ Hook Form + Zod, orval, i18next, Vitest + Testing Library, Playwright.
 ## Prerequisites
 - Node.js 24+ and npm 11+, [Claude Code](https://claude.com/claude-code), the GitHub CLI (`gh`).
 - An API whose contract passes the `contract-auditor` (rules in `docs/API-CONTRACT.md`). A new Spring Boot API
-  starts from `docs/API-KICKSTART.md`: two files to copy and one prompt.
+  starts from `docs/API-KICKSTART.md`: three files to copy and one prompt.
 - An OIDC provider with a public client: Authorization Code + PKCE, redirect URI `http://localhost:5173/*`, one read
   role and one write role in an access token claim (`VITE_OIDC_ROLES_CLAIM`, default Keycloak's `realm_access.roles`),
   and two users for the e2e tests. Tested with Keycloak; the e2e login helper fills Keycloak's login form, so another
@@ -82,6 +83,7 @@ No API yet? Start a Spring Boot API that already follows the contract, from an e
 mkdir library-api && cd library-api && git init
 mkdir docs
 cp ../crud-ui-blueprint/docs/API-CONTRACT.md docs/API-CONTRACT.md   # the rules, never edited in the API repo
+cp ../crud-ui-blueprint/docs/DEPLOY-CONVENTION.md docs/             # deployment rules, the same in both repos
 cp ../crud-ui-blueprint/docs/API-CLAUDE.md CLAUDE.md                # the API's CLAUDE.md template, as is
 claude                                                              # paste the prompt from docs/API-KICKSTART.md
 ```
@@ -91,7 +93,7 @@ claude                                                              # paste the 
 2. Paste the prompt from `docs/API-KICKSTART.md` and replace its last paragraph with your domain (resources, fields,
    relations, filters).
 3. Answer its one round of questions (groupId, realm, field details) and approve the plan. It builds the skeleton
-   (Maven, Docker Compose with PostgreSQL and Keycloak, `k8s/realm.json`, CircleCI), the shared classes modelled on
+   (Maven, Docker Compose with PostgreSQL and Keycloak, `deploy/` with Skaffold, CircleCI), the shared classes modelled on
    [`spring-person-api-claude`](https://github.com/mmartofel/spring-person-api-claude), and then each resource with
    tests, and exports `contract/openapi.json`.
 4. It finishes when `mvn clean verify` passes, the API was smoke-tested, and the README has a "Connect a UI" section
@@ -153,13 +155,14 @@ the API, so the browser sees one origin and the API needs no CORS.
 
 | Variable | Required | What |
 |---|---|---|
-| `OIDC_AUTHORITY` | yes | public URL of the OIDC realm, as the browser reaches it (e.g. `https://sso.example.com/realms/orders`) |
+| `OIDC_AUTHORITY` | yes | the OIDC realm as the browser reaches it: a path on the UI's own host (`/realms/orders`, with `OIDC_UPSTREAM`) or a full URL (`https://sso.example.com/realms/orders`) |
 | `OIDC_CLIENT_ID` | yes | the public client (Authorization Code + PKCE); its redirect URIs must include the UI's URL + `/*` |
 | `OIDC_ROLES_CLAIM` | no | dot path of the roles claim, default `realm_access.roles` |
 | `API_UPSTREAM` | yes | the API as nginx reaches it, without a path (e.g. `http://orders-api:8080`); `/api/...` is passed on unchanged |
+| `OIDC_UPSTREAM` | when `OIDC_AUTHORITY` is a path | Keycloak as nginx reaches it, without a path (e.g. `http://keycloak:8080`); the realm's public paths are proxied there |
 
-A missing or malformed value stops the container with a message naming it. nginx resolves `API_UPSTREAM` when it
-starts, so the host must exist by then (a Kubernetes Service does).
+A missing or malformed value stops the container with a message naming it. nginx resolves `API_UPSTREAM` and
+`OIDC_UPSTREAM` when it starts, so their hosts must exist by then (a Kubernetes Service does).
 
 ```bash
 docker build -t my-ui .        # or podman
@@ -185,12 +188,49 @@ What the image serves:
   must issue refresh tokens (Keycloak does by default), because the CSP blocks the iframe fallback.
 - `Strict-Transport-Security` belongs where TLS ends (the Ingress or load balancer), not in this image.
 
-Kubernetes (`k8s/`, kustomize): `app.yaml` (Deployment with probes, resource limits, non-root, read-only root
-filesystem with `emptyDir`s for `/tmp` and `/etc/nginx/conf.d`; Service on 8080) and `configmap.yaml` (the variables
-above; set them per environment). `skaffold dev` builds the image and deploys `k8s/` to the current context,
-forwarding the UI to `localhost:5173`. `k8s/ingress.example.yaml` (not applied) shows one host routing `/api` to the
-API and `/` to the UI. CircleCI builds the image on every push (job `image`) but pushes it nowhere: add a registry
-login and `docker push` there to publish it.
+With `OIDC_UPSTREAM`, nginx also serves the realm's public paths on the UI's host: `/realms/<realm>/` (login, token,
+logout; only the realm of `OIDC_AUTHORITY`, so the master realm and `/admin` are never reachable) and `/resources/`
+(the login pages' files), with Keycloak's own headers. Keycloak builds its URLs from the forwarded headers, so the
+browser, the UI and the API see one origin, and no host is configured anywhere
+([docs/DEPLOY-CONVENTION.md](docs/DEPLOY-CONVENTION.md) section 6).
+
+### Kubernetes and OpenShift
+The UI and its API repo deploy the same way, with Skaffold and kustomize overlays
+([docs/DEPLOY-CONVENTION.md](docs/DEPLOY-CONVENTION.md), copied unchanged into the API repo). Nothing in git names a
+cluster, host, registry or namespace.
+- `deploy/base/`: `app.yaml` holds the Deployment and Service on 8080. The Deployment has probes and resource limits,
+  runs non-root with a read-only root filesystem, and mounts `emptyDir`s on `/tmp` and `/etc/nginx/conf.d`.
+  `configmap.yaml` holds the variables above, with defaults for the API stack in the same namespace (Services
+  `my-api` and `keycloak`, realm `my-realm`; `crud-ui-init` sets the real names).
+- `deploy/overlays/local` (the default): the base, with the UI forwarded to `localhost:5173`.
+- `deploy/overlays/openshift`: plus a Route with a host OpenShift generates (`<ui>-<namespace>.<apps domain>`) and
+  the Topology labels and arrows (`topology-ui.yaml`).
+- `deploy/overlays/kubernetes`: plus an Ingress. It has no host, so it answers on any host until an environment
+  overlay sets one.
+- `deploy/environments/<env>/` (git-ignored, see `example/`): one environment's host, TLS, ingress class or settings,
+  on top of an overlay.
+
+The application is installed repo by repo into one namespace (any name): first the API repo (PostgreSQL, Keycloak,
+the API), then this one. The UI's nginx starts only once the API and `keycloak` Services exist; installed first, its
+pod restarts until they do.
+```bash
+skaffold dev                                                     # local cluster, UI on http://localhost:5173
+skaffold run -p openshift --default-repo=quay.io/<org> -n <ns> \
+  --label app.kubernetes.io/version=$(git rev-parse --short HEAD)  # or -p kubernetes
+DEPLOY_OVERLAY=deploy/environments/<env> skaffold run -p kubernetes --default-repo=quay.io/<org> -n <ns>
+skaffold delete -p openshift -n <ns>                             # removes only what this repo installed
+```
+- **Image.** `deploy/build-image.sh` builds the Dockerfile with docker, or with podman when docker is missing. It
+  builds for the cluster nodes' platform, which Skaffold detects (an ARM Mac builds `linux/amd64` for most clusters),
+  and pushes to `--default-repo` as `<repo>/<ui>:<commit>`, with the engine's own registry login. Keep a local login
+  script out of git and the image (`registry-login.sh` is ignored by both).
+- **Quay.** A robot account usually cannot create a repository: create it first and make it public, or give the
+  namespace a pull secret.
+- **Keycloak.** It must run with `KC_PROXY_HEADERS=xforwarded`, and the UI client must have `rootUrl ${authBaseUrl}`
+  and relative redirect URIs, as the kickstart's realm has (`docs/API-CLAUDE.md` "Keycloak"). Then sign-in works on
+  whatever host the Route or Ingress gets, with nothing to change in the realm.
+
+CircleCI builds the image on every push (job `image`) but pushes it nowhere, and renders every overlay.
 
 ## Repository
 - `src/components/app/`, `src/manifest/`, `src/auth/`, `src/i18n/`, `src/api/fetcher.ts`: the generic app, driven by
@@ -202,7 +242,7 @@ login and `docker push` there to publish it.
   evals in `.claude/skills/crud-resource/evals/` and `.claude/agents/evals/contract-auditor/` on the fixture contracts
   in `src/test/fixtures/contract/` (see Skill evals).
 - `docs/API-CONTRACT.md` (for API teams), `docs/API-KICKSTART.md` and `docs/API-CLAUDE.md` (new Spring Boot API), `docs/PATTERNS.md` (lessons), `docs/DESIGN.md` (visual rules).
-- `Dockerfile`, `docker/` (nginx templates, runtime config), `k8s/`, `skaffold.yaml`: the production image and its deployment (see Deploy).
+- `Dockerfile`, `docker/` (nginx templates, runtime config), `deploy/` (kustomize base, overlays, environments), `skaffold.yaml`: the production image and its deployment (see Deploy, [docs/DEPLOY-CONVENTION.md](docs/DEPLOY-CONVENTION.md)).
 - `CHANGELOG.md`, `docs/UPGRADE.md`, `scripts/blueprint-upgrade.sh`, `.claude/skills/blueprint-upgrade`: blueprint
   releases and the upgrade path (a project has `.blueprint-version` instead of the changelog).
 - `renovate.json`: dependency updates (see CI).

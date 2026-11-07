@@ -67,7 +67,8 @@ src/test/fixtures/           # persons/tasks manifest, schemas and labels for un
 e2e/                         # Playwright tests: shell.spec.ts, one spec per resource, gallery{,-a11y,-visual}.spec.ts;
                              #   support/ (login, API data, axe), __screenshots__/ (baselines, made in Docker)
 Dockerfile  docker/          # production image: nginx (SPA, /api proxy, CSP and headers), runtime config written at start
-k8s/  skaffold.yaml          # kustomize Deployment/Service/ConfigMap, Ingress example; skaffold dev forwards to 5173
+deploy/  skaffold.yaml       # kustomize base + overlays (local, openshift, kubernetes) + environments; skaffold dev -> 5173
+docs/DEPLOY-CONVENTION.md    # deployment rules shared with the API repo (copied there unchanged)
 docs/DESIGN.md               # visual rules: tokens, typography, density, elevation, status colours; the reference for screens
 docs/API-CONTRACT.md         # contract rules the API must follow (checked by the contract-auditor agent); hand it to API teams
 docs/API-CLAUDE.md           # CLAUDE.md template for a new Spring Boot API that serves this UI (copied as is)
@@ -100,12 +101,14 @@ In dev, Vite proxies `/api` to `API_PROXY_TARGET`.
 
 ## Starting a new API (kickstart)
 A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never hand an API team a partial block.
-- The API repo gets exactly two files from here, copied unchanged: `docs/API-CONTRACT.md` and `docs/API-CLAUDE.md`
-  (as its `CLAUDE.md`). Then the prompt in `docs/API-KICKSTART.md` is pasted into its first session; that session
+- The API repo gets exactly three files from here, copied unchanged: `docs/API-CONTRACT.md`,
+  `docs/DEPLOY-CONVENTION.md` and `docs/API-CLAUDE.md` (as its `CLAUDE.md`). Then the prompt in `docs/API-KICKSTART.md` is pasted into its first session; that session
   fills the template's Project section itself.
 - Keycloak is fixed, not configurable: realm `<realm>`, realm roles `<realm>-viewer` / `<realm>-editor` in
-  `realm_access.roles`, public client `<realm>-ui` (PKCE S256, redirect `http://localhost:5173/*`), service account
-  client `<realm>-api`, users `viewer` / `editor`, i18n `en` + `pl`; Keycloak 8080, API 8081, PostgreSQL 5432.
+  `realm_access.roles`, public client `<realm>-ui` (PKCE S256, `rootUrl ${authBaseUrl}`, redirect and post-logout
+  `/*` plus `http://localhost:5173/*`, web origins `+`), service account client `<realm>-api`, users `viewer` /
+  `editor`, i18n `en` + `pl`; Keycloak 8080 (`KC_PROXY_HEADERS=xforwarded`, no `KC_HOSTNAME`), API 8081,
+  PostgreSQL 5432.
 - The kickstart ends with a README "Connect a UI" section holding the `.env.local` lines; `crud-ui-init` reads it
   instead of asking. Keep that list in step with `.env.example` when a variable is added.
 - The three API docs move together: a new contract rule goes into `docs/API-CONTRACT.md` and, when it changes how a
@@ -114,12 +117,17 @@ A new Spring Boot API for this UI starts from `docs/API-KICKSTART.md`; never han
   `docs/API-CONTRACT.md` section 10 and `docs/API-CLAUDE.md` in the same session.
 - `docs/API-CLAUDE.md` stays generic: placeholders (`<project>`, `<groupId>`, `<realm>`, `<Resource>`) and the
   Order/Customer examples only; no names from the reference API except in `docs/API-KICKSTART.md`, which pins it
-  (`spring-person-api-claude`, commit `f98300e`) as the model for the shared classes.
+  (`spring-person-api-claude`, commit `f98300e`) as the model for the shared classes, and commit `6a795fe` (3.6.1)
+  for `deploy/`.
 
 ## Production image
 - One image for every environment: configuration that differs per environment is read at container start
   (`/config.js`, `src/config.ts`), never baked in through `import.meta.env`. A new setting goes into `src/config.ts`,
-  `docker/10-ui-runtime-config.envsh`, `k8s/configmap.yaml` and the README "Deploy" table together.
+  `docker/10-ui-runtime-config.envsh`, `deploy/base/configmap.yaml` and the README "Deploy" table together.
+- Deployment follows `docs/DEPLOY-CONVENTION.md`, the same in the API repo: Skaffold profiles `openshift` and
+  `kubernetes` over `deploy/overlays/`, and nothing in git that names a cluster, host, registry or namespace (an
+  environment's values go into a git-ignored `deploy/environments/<env>/`). Sign-in is on the UI's host: nginx
+  proxies the realm's public paths to `OIDC_UPSTREAM`. A change to the convention goes into both repos' copies.
 - No inline scripts or new external origins in `index.html` or the app: the CSP is `script-src 'self'`. A new origin
   the browser calls goes into `docker/templates/security-headers.inc.template` `connect-src`.
 

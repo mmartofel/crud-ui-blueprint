@@ -1,0 +1,21 @@
+# The UI's public host; TLS ends at the router, so HSTS is set here (the image does not send it, README "Deploy").
+# No spec.host: OpenShift generates one. An environment overlay sets it for a host of its own.
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: crud-ui-blueprint
+  labels:
+    app.kubernetes.io/name: crud-ui-blueprint
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: my-app
+  annotations:
+    haproxy.router.openshift.io/hsts_header: max-age=31536000
+spec:
+  to:
+    kind: Service
+    name: crud-ui-blueprint
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

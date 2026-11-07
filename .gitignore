@@ -45,3 +45,12 @@ reports
 # skill-creator eval results and Claude Code worktrees (eval runs)
 .claude/**/*-workspace/
 .claude/worktrees/
+
+# Local registry logins and packed tarballs (never committed; .dockerignore keeps the login out of the image too)
+*.tgz
+registry-login.sh
+quay.sh
+
+# environment overlays hold one environment's hosts and secrets (docs/DEPLOY-CONVENTION.md); only the example is kept
+deploy/environments/*
+!deploy/environments/example/
