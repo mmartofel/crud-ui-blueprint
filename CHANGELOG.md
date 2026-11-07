@@ -15,6 +15,10 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+### Fixed
+- The persons reference spec "search, page size, sorting and paging are kept in the URL" picked 10 rows, the new
+  default of 2.0.0, which the URL leaves out, so it always failed. It picks 20 and creates 21 records now.
+
 ## [2.0.0] - 2026-11-07
 
 Deployment taken back from person-ui-v2, the first project built from this template: one method for the UI and its
