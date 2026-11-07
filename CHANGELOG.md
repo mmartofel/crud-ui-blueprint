@@ -18,6 +18,9 @@ section to the version and date and tags the commit `v<version>`.
 ### Fixed
 - The setup line of the crud-resource eval `contract-change-new-field` creates `src/features/` before copying the
   reference feature into it. The blueprint has no such folder, so the copy failed.
+- `docs/API-CONTRACT.md` and `docs/API-CLAUDE.md` no longer ask for a nullable `<relation>Id`. The reference API
+  doesn't type it nullable, and a field left out of a `PUT` is cleared anyway (section 6). Section 8 now accepts
+  optional fields that aren't typed nullable, so the contract-auditor stops warning about them.
 
 ## [2.0.2] - 2026-11-07
 
