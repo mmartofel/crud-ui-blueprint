@@ -15,6 +15,16 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [2.0.4] - 2026-11-12
+
+Dependency updates. No migration needed.
+
+### Changed
+- `cn` 0.5.2 and `react-i18next` 17.1.13 (patch updates).
+
+### Fixed
+- `docs/PATTERNS.md` "Known gaps" no longer lists the gallery test flake that 1.2.3 fixed.
+
 ## [2.0.3] - 2026-11-07
 
 Contract docs and eval fixes. No migration needed.
@@ -264,7 +274,8 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.3...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.4...HEAD
+[2.0.4]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.3...v2.0.4
 [2.0.3]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.0...v2.0.1

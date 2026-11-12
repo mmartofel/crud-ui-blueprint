@@ -207,9 +207,9 @@ Known gaps, left as is:
     body-size line, unlike `EmptyState` (icon in a soft circle, `text-sm` muted line); `ErrorPage` is neither in
     `docs/DESIGN.md` nor in the gallery, so neither the screenshots nor the reviewer can compare it;
   - the collapsed sidebar's user menu shows only the initials, without a tooltip (the nav items have one);
-  - `gallery.spec.ts` "the reader sees no write actions" fails in some full parallel runs (3 of 20 parallel repeats;
-    20 of 20 serial repeats pass, the switch takes 0.6 s alone). In a failing run the detail's Delete goes at once
-    but the list's "New" link stays for the whole 15 s, although both read the same role; root cause not found.
+  - ~~`gallery.spec.ts` "the reader sees no write actions" fails in some full parallel runs~~: fixed (1.2.3: the
+    locator matched the task "Renew the office lease" as a "New" link whenever the tasks list loaded first; the
+    locators are exact now).
 - **Open from the 1.1.0 Validation (person-ui-v2, #3):**
   - console error "flushSync was called from inside a lifecycle method" when a checkbox is clicked while a picker's
     popover (relation or country) is open or closing: the task form's Done after Assignee, and `/__gallery#form`.
