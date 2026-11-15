@@ -15,6 +15,13 @@ describe('resourcePage', () => {
     expect(page('/tasks/42/edit')).toEqual({ key: 'tasks', kind: 'edit', id: 42 })
   })
 
+  it('reads a UUID id as a string', () => {
+    const id = '682c7baf-b7c6-4bec-a728-48bc2d12ee28'
+    expect(page(`/tasks/${id}`)).toEqual({ key: 'tasks', kind: 'detail', id })
+    expect(page(`/tasks/${id.toUpperCase()}/edit`)).toEqual({ key: 'tasks', kind: 'edit', id })
+    expect(page('/tasks/682c7baf-b7c6-4bec')).toBeNull()
+  })
+
   it('is null outside the resource routes', () => {
     expect(page('/')).toBeNull()
     expect(page('/no-such-page')).toBeNull()
