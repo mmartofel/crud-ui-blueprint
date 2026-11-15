@@ -15,7 +15,8 @@ Examples use a resource `Person` (tag `Persons`, path `/api/persons`). Replace i
 ## 2. Endpoints
 - All endpoints live under the base path `/api`. The UI calls relative URLs; production serves UI and API from one
   origin, so no CORS is needed.
-- Five operations per resource, with these operationIds (they become the names of the generated hooks):
+- Five operations per resource, with these operationIds (they become the names of the generated hooks). This is a
+  **CRUD resource**. A resource written through commands (CQRS / Event Sourcing) follows section 11 instead:
 
   | Method and path | operationId | Success |
   |---|---|---|
@@ -170,3 +171,58 @@ contract or UI fix:
   as the Route or Ingress gets a generated host. Keycloak runs with `KC_PROXY_HEADERS=xforwarded` and no hostname,
   and the UI client has `rootUrl ${authBaseUrl}` with relative redirect URIs; the UI's nginx serves the realm's public
   paths on its own host (`docs/DEPLOY-CONVENTION.md` section 6).
+
+## 11. Command resources (CQRS / Event Sourcing)
+
+> **Status: agreed, not supported yet.** The UI, the manifest and the `contract-auditor` do not handle command
+> resources yet; the work is tracked in [#9](https://github.com/mmartofel/crud-ui-blueprint/issues/9). An API can
+> already be built to this section.
+
+A command resource is changed only through commands, and read from a read model that is updated from events. It
+can be eventually consistent: a read right after a command may still show the old state. CRUD resources and command
+resources can live in the same API and the same UI.
+
+### Reads
+Unchanged: sections 2 (`list<Resource>` and `get<Resource>`), 3, 4 and 9. The response also has, all `required`:
+- `version`: the aggregate's stream version, the number of the last event applied to this read model;
+- `status`: a string enum (section 3), the aggregate's state;
+- `allowedActions`: a string array of the action names (below) that the current user may run in the current state.
+  The server owns the state machine; the UI shows only the actions listed and never derives them from `status`.
+
+### Commands
+- **Create:** `POST /api/orders`, operationId `create<Resource>` (`createOrder`), request `<Resource>CreateRequest`.
+  Returns **201** with `Location` and `{id, version}`, schema `CommandResult`.
+- **Actions:** `POST /api/orders/{id}/<action>`, `<action>` in kebab case. operationId `<action><Resource>` in camel
+  case (`cancelOrder`; `POST /api/deliveries/{id}/ship` is `shipDelivery`), request schema
+  `<Action><Resource>Request` (`CancelOrderRequest`) with the `version` from the last read, required. An action
+  without input has only `version`. Returns **202** with `{id, version}`, schema `CommandResult`.
+- `CommandResult` has `id` and `version`, both `required`: the aggregate id and the stream version after the command.
+- **No `PUT` and no `DELETE`.** Removing a record is an action (`cancel`, `archive`) and the record stays readable.
+- Validation constraints and field errors follow sections 3 and 5 for every request schema; an unknown
+  `<relation>Id` is 400 `not-found` (section 9), never 422.
+
+### Ids
+- `{id}` is an integer (`int64`) as in section 2, or a UUID (`type: string, format: uuid`). A command resource
+  usually has UUIDs, because the id is chosen before the first event is stored. One resource uses one id type.
+
+### Concurrency and rules
+- A stale `version` returns **409 without `errors[]`**, as in section 6: the UI offers a reload.
+- A command that the current state does not allow (for example cancelling a shipped order) returns **409 with
+  `errors: [{ code: "invalid-state" }]`** (no `field`) and a `detail` message. `invalid-state` is added to the
+  `FieldError.code` enum.
+- A command that the role does not allow returns 403 (section 7). An action listed in `allowedActions` is always
+  allowed for the user's roles; a 409 `invalid-state` can still happen when another user changed the state first.
+
+### Waiting for the read model
+- After a command, the UI reads `GET /api/orders/{id}` until the response's `version` is at least the
+  `CommandResult.version`; after a create, a 404 counts as "not there yet". It retries with back-off for about
+  5 s, then shows the record with a "still processing" notice and keeps polling in the background.
+- The API documents in `info.description` that the resource is eventually consistent.
+- A strongly consistent API (the read model updated in the same transaction) also meets this section: the first
+  read already has the version.
+
+### One origin, one contract
+- Command and query endpoints may live in separate services, but the UI sees one origin under `/api` (section 2)
+  and one `contract/openapi.json` (section 1). When reads and writes share paths, a gateway routes by HTTP method
+  (an OpenShift Route or a Kubernetes Ingress routes by path only) and serves the merged contract; CI fails when the
+  merged contract is out of date.
