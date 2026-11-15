@@ -123,3 +123,56 @@ resources:
       createdAt: dateTime
       updatedAt: dateTime
       estimateHours: number
+
+  # A command resource (docs/API-CONTRACT.md section 11), from the order management API: created once, then changed
+  # only through actions. Which actions a record offers comes from its allowedActions.
+  deliveries:
+    kind: commands
+    route: /deliveries
+    nav:
+      icon: truck
+      order: 3
+    display: "{carrier} {scheduledFor}"
+    permissions:
+      read: [orders-viewer, orders-editor]
+      write: [orders-editor]
+
+    list:
+      defaultSort: scheduledFor,desc
+      pageSize: 20
+      pageSizes: [10, 20, 50]
+      columns:
+        - { field: carrier,      sortable: true }
+        - { field: status,       sortable: true, format: badge, enum: DeliveryStatus, mobile: subtitle,
+            badge: { SCHEDULED: info, SHIPPED: warning, DELIVERED: success, CANCELLED: secondary } }
+        - { field: scheduledFor, sortable: true, format: date, mobile: subtitle }
+        - { field: trackingNumber }
+
+    detail:
+      fields: [carrier, scheduledFor, trackingNumber, cancelReason, updatedAt]
+      status: status
+
+    form:
+      groups:
+        - [carrier, scheduledFor]
+      fields:
+        scheduledFor: { input: date }
+      readOnly: [updatedAt]
+
+    # ship and cancel take input; complete only confirms
+    actions:
+      - name: ship
+        form:
+          groups:
+            - [trackingNumber]
+      - name: complete
+      - name: cancel
+        destructive: true
+        form:
+          groups:
+            - [reason]
+          fields:
+            reason: { input: textarea }
+
+    formats:
+      updatedAt: dateTime

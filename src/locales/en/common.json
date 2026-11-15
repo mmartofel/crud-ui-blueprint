@@ -80,7 +80,8 @@
     "date-range": "The end date cannot be earlier than the start date.",
     "not-found": "The selected record does not exist.",
     "in-use": "It is still used by other records.",
-    "step": "Enter a multiple of {{step}}."
+    "step": "Enter a multiple of {{step}}.",
+    "invalid-state": "The current state does not allow this."
   },
   "notifications": "Notifications",
   "documentTitle": "{{page}} – {{app}}",
@@ -141,7 +142,8 @@
     "updated": "{{name}} was saved.",
     "deleted": "{{name}} was deleted.",
     "deleteFailed": "{{name}} could not be deleted.",
-    "deleteInUse": "{{name}} is still used by other records and was not deleted."
+    "deleteInUse": "{{name}} is still used by other records and was not deleted.",
+    "createdPending": "Saved. It will show up in a moment."
   },
   "delete": {
     "title": "Delete {{name}}?",
@@ -186,5 +188,15 @@
       "unexpected": "Unexpected status response ({{detail}}).",
       "incompatible": "This API version is not compatible with contract {{detail}} the screens were built for."
     }
+  },
+  "command": {
+    "sending": "Sending…",
+    "sent": "{{action}}: sent.",
+    "failedTitle": "This could not be done",
+    "processingTitle": "Processing…",
+    "processingText": "The change is saved and will show up here in a moment.",
+    "slowTitle": "Still processing",
+    "slowText": "The change is saved but takes longer than usual to show up. This page updates on its own.",
+    "staleText": "Someone else changed this record in the meantime. Reload it to see its current state, then try again."
   }
 }

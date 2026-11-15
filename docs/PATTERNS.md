@@ -290,3 +290,15 @@ Known gaps, left as is:
 - ~~The app name~~: in the manifest since D2 (`app.name`).
 - ~~Relations between resources~~: done in 9b (`input/format: relation`, relation filters, `detail.related`).
   Sorting by a relation column is not offered: the contract does not document a sort key for it.
+- **List fields in a form** (an order's `lines: [{ itemId, quantity }]`): a create body with an array of objects
+  cannot be entered yet. Needed by the orders of the order management API (#9).
+
+**Added for command resources (#9, API-CONTRACT.md section 11):**
+- `kind: commands` and `actions: [{ name, form?, destructive? }]`. `form` is the create form only; there is no edit
+  form and no delete. Which actions a record offers comes from its `allowedActions`, never from the manifest: the
+  manifest says only how an action looks. An allowed action the manifest does not describe is not offered.
+- Labels `<resource>.actions.<name>.label` and `.text`; an action's fields use `<resource>.fields.<field>`.
+- Record ids may be UUIDs: `parseRecordId` tells them apart from integers by shape, so there is no `idType` key.
+- Waiting for the read model: `useAwaitVersion` reads the record until its `version` reaches the command's, with
+  back-off for about 5 s, then "still processing" and a read every 3 s. A create passes the version on in the router
+  state (`awaitVersion`), so the detail page shows "processing" instead of the not-found page.

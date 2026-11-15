@@ -35,6 +35,16 @@ Ask for whichever is missing. Say whether it is a **new** resource or an **exist
       view at 768 px (the table scrolls inside its frame with an edge fade).
 - [ ] **STOP. Show the draft and the open decisions and wait for the user's approval.** Missing decision: ask, never guess.
 
+### A command resource
+The tag has `POST /{id}/<action>` operations and no `PUT` or `DELETE` (API-CONTRACT.md section 11; the
+`contract-auditor` says `(command resource)`). Draft it like a CRUD resource, with these differences:
+- `kind: commands`; `form` is the create form only (no `:id/edit` route, no edit page).
+- `actions:` one entry per action of the contract, `name` = the path segment. `form` lists the action body's fields
+  besides `version` (none: a confirmation only); `destructive: true` for cancel, refund and the like.
+- `display` from fields the read model always has: there is no name to show before the record is read.
+- A create body with a list of objects (an order's `lines`) cannot be entered yet (PATTERNS.md section 4, Missing):
+  say so in the draft and leave that resource's create page out.
+
 ## Phase B: build (after approval)
 - [ ] Manifest: write the approved entry; add the key to `ResourceKey` (`src/manifest/index.ts`), a new `nav.icon`
       to `src/manifest/icons.ts` and the resource to `src/api/sources.ts`. New manifest keys: extend the types in `src/manifest/index.ts` and the generic
@@ -55,6 +65,18 @@ Ask for whichever is missing. Say whether it is a **new** resource or an **exist
       Keep the example's `expectAccessible` calls (list, form, detail, delete dialog, reader view): no serious or
       critical axe violations.
 - [ ] `npm run contract:check` passes (generated code committed with the contract).
+
+### A command resource
+- Ids are UUIDs: `useUuidParam()` instead of `useIdParam()`.
+- Detail page: `ResourceDetail` with `commands={{ run, schemas, enumValues, onChanged }}`: one generated mutation per
+  action (`run.cancel = (data) => cancel.mutateAsync({ id, data })`), the action body schemas without `version`
+  (`CancelOrderBody.omit({ version: true })`), and `onChanged` invalidating the resource's lists. No `remove`.
+- List page: `ResourceList` without `remove` and `onDeleted` (no row menu).
+- Create page: `ResourceForm` with `save` returning the generated create's `CommandResult`; it opens the detail page,
+  which waits for the version. `onSaved` only invalidates the lists (there is no record to put into the cache).
+- Routes: list, `new` and `:id`; no `:id/edit`.
+- i18n: `actions.<name>.label` and `.text` for every action (the locales test checks them).
+- E2E: an action, the record reaching its new status, a stale version (two tabs), and an `invalid-state`.
 
 ## Definition of Done (from CLAUDE.md)
 1. `npm run typecheck`, `npm run lint`, `npm test` and `npm run build` pass.

@@ -1,0 +1,29 @@
+{
+  "title": "Deliveries",
+  "newTitle": "New delivery",
+  "editTitle": "Edit {{name}}",
+  "empty": "No deliveries yet.",
+  "fields": {
+    "carrier": "Carrier",
+    "scheduledFor": "Scheduled for",
+    "status": "Status",
+    "trackingNumber": "Tracking number",
+    "cancelReason": "Cancel reason",
+    "reason": "Reason",
+    "updatedAt": "Last changed"
+  },
+  "actions": {
+    "ship": {
+      "label": "Ship",
+      "text": "Hand the delivery over to the carrier."
+    },
+    "complete": {
+      "label": "Mark delivered",
+      "text": "Confirm that the customer has received the delivery."
+    },
+    "cancel": {
+      "label": "Cancel delivery",
+      "text": "Cancel the delivery. The order stays paid, so a new delivery can be scheduled."
+    }
+  }
+}

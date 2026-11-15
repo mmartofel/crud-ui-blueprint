@@ -5,7 +5,7 @@ const generatedCodes = Object.values(import.meta.glob('@/api/generated/model/fie
   (module) => Object.values((module as { FieldErrorCode?: Record<string, string> }).FieldErrorCode ?? {}),
 )
 // The codes the generic code relies on even before a contract exists (docs/API-CONTRACT.md).
-const codes = new Set(['required', 'invalid', 'unique', 'date-range', 'not-found', 'in-use', ...generatedCodes])
+const codes = new Set(['required', 'invalid', 'unique', 'date-range', 'not-found', 'in-use', 'invalid-state', ...generatedCodes])
 
 function keys(value: unknown, prefix = ''): string[] {
   if (typeof value !== 'object' || value === null) return [prefix]
@@ -59,6 +59,16 @@ describe('manifest labels', () => {
         ])
         for (const field of fields) expect(all, `${lang}: ${resource.key}.fields.${field}`).toContain(`${resource.key}.fields.${field}`)
         for (const object of objects) expect(all, `${lang}: ${resource.key}.groups.${object}`).toContain(`${resource.key}.groups.${object}`)
+        // Command resources: each action's button and dialog title, and the dialog's explanation.
+        for (const action of resource.actions ?? []) {
+          for (const key of ['label', 'text']) {
+            const label = `${resource.key}.actions.${action.name}.${key}`
+            expect(all, `${lang}: ${label}`).toContain(label)
+          }
+          for (const field of action.form?.groups.flat() ?? []) {
+            expect(all, `${lang}: ${resource.key}.fields.${field}`).toContain(`${resource.key}.fields.${field}`)
+          }
+        }
         for (const { param } of resource.list.filters ?? []) {
           expect(all, `${lang}: ${resource.key}.filters.${param}`).toContain(`${resource.key}.filters.${param}`)
         }

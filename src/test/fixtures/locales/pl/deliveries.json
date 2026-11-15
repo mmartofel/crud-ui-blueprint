@@ -1,0 +1,29 @@
+{
+  "title": "Dostawy",
+  "newTitle": "Nowa dostawa",
+  "editTitle": "Edycja: {{name}}",
+  "empty": "Nie ma jeszcze dostaw.",
+  "fields": {
+    "carrier": "Przewoźnik",
+    "scheduledFor": "Planowana data",
+    "status": "Status",
+    "trackingNumber": "Numer przesyłki",
+    "cancelReason": "Powód anulowania",
+    "reason": "Powód",
+    "updatedAt": "Ostatnia zmiana"
+  },
+  "actions": {
+    "ship": {
+      "label": "Wyślij",
+      "text": "Przekaż dostawę przewoźnikowi."
+    },
+    "complete": {
+      "label": "Oznacz jako dostarczoną",
+      "text": "Potwierdź, że klient otrzymał dostawę."
+    },
+    "cancel": {
+      "label": "Anuluj dostawę",
+      "text": "Anuluj dostawę. Zamówienie pozostaje opłacone, więc można zaplanować nową dostawę."
+    }
+  }
+}

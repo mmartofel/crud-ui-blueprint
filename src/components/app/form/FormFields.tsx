@@ -29,6 +29,8 @@ interface FormFieldsProps<T extends FieldValues, TOut extends FieldValues> {
   numberLimits?: Record<string, NumberLimits>
   /** Names of the records relation inputs start with, by path (from the record's embedded references). */
   relationLabels?: Record<string, string | undefined>
+  /** The rows without the "Details" card around them, for a form inside a dialog (an action's input). */
+  bare?: boolean
 }
 
 export interface NumberLimits {
@@ -48,6 +50,7 @@ export function FormFields<T extends FieldValues, TOut extends FieldValues = T>(
   enumValues = {},
   numberLimits = {},
   relationLabels = {},
+  bare = false,
 }: FormFieldsProps<T, TOut>) {
   const { t } = useTranslation()
   const row = (fields: string[]) => (
@@ -70,6 +73,8 @@ export function FormFields<T extends FieldValues, TOut extends FieldValues = T>(
   // As on the detail page: the top-level rows in one "Details" card, then a titled card per nested object.
   const rows = resource.form.groups.filter((group): group is string[] => !isObjectGroup(group))
   const objects = resource.form.groups.filter(isObjectGroup)
+
+  if (bare) return <div className="flex flex-col gap-5">{rows.map(row)}</div>
 
   return (
     <>

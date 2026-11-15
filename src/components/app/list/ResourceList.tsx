@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { tDynamic } from '@/i18n/dynamic'
 import { useFormat } from '@/i18n/format'
-import { canWrite, formatDisplay, type Resource } from '@/manifest'
+import { canWrite, formatDisplay, isCommandResource, type Resource } from '@/manifest'
 import { DataState } from '../DataState'
 import { PageHeader } from '../PageHeader'
 import { useDeleteRecord } from '../useDeleteRecord'
@@ -39,9 +39,9 @@ interface ResourceListProps<T extends AnyRecord> {
   /** Allowed values of each select filter, from the generated model (e.g. `Object.values(ListPersonsStatus)`). */
   filterValues?: Record<string, readonly string[]>
   /** Deletes a record from the row menu (the generated delete mutation). */
-  remove: (record: T) => Promise<unknown>
+  remove?: (record: T) => Promise<unknown>
   /** Updates the query cache after a delete: remove the record's detail query, invalidate the lists. */
-  onDeleted: (record: T) => void
+  onDeleted?: (record: T) => void
 }
 
 /**
@@ -59,7 +59,8 @@ export function ResourceList<T extends AnyRecord>({
   const { t } = useTranslation()
   const format = useFormat()
   const roles = useRoles()
-  const writer = canWrite(roles, resource)
+  // A command resource has no edit and no delete: its rows link to the detail page, where its actions are.
+  const writer = canWrite(roles, resource) && !isCommandResource(resource)
   const { state, setPage, setSize, setSort, setQuery, setFilter, clearFilters, clampPage } = list
   const toolbarRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -92,7 +93,13 @@ export function ResourceList<T extends AnyRecord>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   // Deleting the last row removes the menu that opened the dialog: focus goes to the search box.
-  const deletion = useDeleteRecord<T>({ resource, remove, onDeleted, fallbackFocus: focusSearch })
+  // Only CRUD resources delete; a command resource passes neither `remove` nor `onDeleted`.
+  const deletion = useDeleteRecord<T>({
+    resource,
+    remove: remove ?? (() => Promise.reject(new Error(`${resource.key} has no delete`))),
+    onDeleted: onDeleted ?? (() => {}),
+    fallbackFocus: focusSearch,
+  })
   const newButton = (
     <Button asChild>
       <Link to={`${resource.route}/new`}>

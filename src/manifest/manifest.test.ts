@@ -1,4 +1,15 @@
-import { app, canRead, canWrite, detailSections, fieldFormat, formatDisplay, isNumeric, resources } from '@/manifest'
+import {
+  app,
+  canRead,
+  canWrite,
+  detailSections,
+  fieldFormat,
+  formatDisplay,
+  isCommandResource,
+  isNumeric,
+  offeredActions,
+  resources,
+} from '@/manifest'
 import { fixtureResource, fixtureResources } from '@/test/fixtures'
 
 describe('manifest', () => {
@@ -11,8 +22,18 @@ describe('manifest', () => {
   })
 
   it('builds resources in nav order', () => {
-    expect(fixtureResources.map((r) => r.key)).toEqual(['persons', 'tasks'])
+    expect(fixtureResources.map((r) => r.key)).toEqual(['persons', 'tasks', 'deliveries'])
     expect(persons.route).toBe('/persons')
+  })
+
+  it('tells command resources apart and offers only the actions a record allows, in manifest order', () => {
+    const deliveries = fixtureResource('deliveries')
+    expect(isCommandResource(deliveries)).toBe(true)
+    expect(isCommandResource(persons)).toBe(false)
+    expect(offeredActions(deliveries, ['cancel', 'ship']).map((a) => a.name)).toEqual(['ship', 'cancel'])
+    // an action the manifest does not describe is not offered; no allowedActions means none
+    expect(offeredActions(deliveries, ['refund']).map((a) => a.name)).toEqual([])
+    expect(offeredActions(deliveries, undefined)).toEqual([])
   })
 
   it('grants read to viewers and editors, write only to editors', () => {
