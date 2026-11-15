@@ -64,6 +64,8 @@ describe('manifest helpers', () => {
   it('fills the display template and tolerates missing values', () => {
     expect(formatDisplay(persons.display, { firstName: 'Anna', lastName: 'Nowak' })).toBe('Anna Nowak')
     expect(formatDisplay(persons.display, { lastName: 'Nowak' })).toBe('Nowak')
+    // {field:N}: the first N characters, for a record without a name
+    expect(formatDisplay('#{id:8}', { id: '682c7baf-b7c6-4bec-a728-48bc2d12ee28' })).toBe('#682c7baf')
   })
 
   it('splits the detail fields into main, nested-object and metadata sections without the header status', () => {

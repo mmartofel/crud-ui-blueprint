@@ -295,6 +295,11 @@ Known gaps, left as is:
   index (`lines.itemId`); the API's field errors carry it (`lines[1].itemId`) and land on that row. `detail.lists:
   [{ field, columns }]` shows such a list as a table on the detail page.
 
+**Added for the order management UI (#9):**
+- `display` `{field:N}` (the first N characters) names a record without a name by its id.
+- A relation input's `filter: { <list filter>: <form field> }`: the picker lists only the records matching another
+  field of the form (an order's address of the chosen person). While that field is empty the picker lists all.
+
 **Added for command resources (#9, API-CONTRACT.md section 11):**
 - `kind: commands` and `actions: [{ name, form?, destructive? }]`. `form` is the create form only; there is no edit
   form and no delete. Which actions a record offers comes from its `allowedActions`, never from the manifest: the
