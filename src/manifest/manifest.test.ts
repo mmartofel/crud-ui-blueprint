@@ -22,7 +22,7 @@ describe('manifest', () => {
   })
 
   it('builds resources in nav order', () => {
-    expect(fixtureResources.map((r) => r.key)).toEqual(['persons', 'tasks', 'deliveries', 'orders'])
+    expect(fixtureResources.map((r) => r.key)).toEqual(['fxPersons', 'fxTasks', 'fxDeliveries', 'fxOrders'])
     expect(persons.route).toBe('/persons')
   })
 
@@ -58,7 +58,7 @@ describe('manifest helpers', () => {
     const tasks = fixtureResource('tasks')
     expect(fieldFormat(tasks, 'createdAt')).toEqual({ format: 'dateTime' })
     expect(fieldFormat(tasks, 'estimateHours')).toEqual({ format: 'number' })
-    expect(fieldFormat(tasks, 'assignee')).toMatchObject({ format: 'relation', resource: 'persons' })
+    expect(fieldFormat(tasks, 'assignee')).toMatchObject({ format: 'relation', resource: 'fxPersons' })
   })
 
   it('fills the display template and tolerates missing values', () => {

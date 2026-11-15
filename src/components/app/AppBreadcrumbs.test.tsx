@@ -11,7 +11,7 @@ const anna = { id: 7, firstName: 'Anna', lastName: 'Nowak' }
 
 beforeAll(() => {
   Object.assign(sources, {
-    persons: {
+    fxPersons: {
       list: async () => ({ content: [] }),
       get: async (id: number) => {
         if (id !== anna.id) throw new Error('not found')

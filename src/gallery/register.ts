@@ -10,8 +10,8 @@ import { memorySource, persons, tasks } from './data'
 resources.push(...fixtureResources.filter((fixture) => !resources.some((r) => r.key === fixture.key)))
 
 Object.assign(sources, {
-  persons: memorySource(fixtureResource('persons'), persons),
-  tasks: memorySource(fixtureResource('tasks'), tasks),
+  fxPersons: memorySource(fixtureResource('persons'), persons),
+  fxTasks: memorySource(fixtureResource('tasks'), tasks),
 })
 
 // No API in the gallery: the footer shows a fixed, available status.
