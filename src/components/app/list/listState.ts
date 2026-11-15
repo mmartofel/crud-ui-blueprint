@@ -20,7 +20,7 @@ type ListManifest = Resource['list']
 /** The generated query params schema of the list endpoint (e.g. `ListPersonsQueryParams`). */
 export type QuerySchema = z.ZodObject
 
-/** A URL value in the type the contract expects: `true`/`false` for a boolean filter, a number for a relation id. */
+/** A URL value in the type the contract expects: `true`/`false` for a boolean filter, a number for an integer relation id (a UUID stays text). */
 function typedFilterValue(input: FilterInput, value: string): unknown {
   if (input === 'boolean') return value === 'true' ? true : value === 'false' ? false : value
   if (input === 'relation') return /^\d+$/.test(value) ? Number(value) : value

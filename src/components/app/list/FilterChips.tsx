@@ -7,6 +7,7 @@ import { enumLabelKey, filterLabelKey, tDynamic } from '@/i18n/dynamic'
 import { formatDate } from '@/i18n/format'
 import { countryName } from '@/lib/countries'
 import { formatDisplay, getResource, type FilterManifest, type Resource } from '@/manifest'
+import { parseRecordId } from '@/lib/ids'
 
 interface FilterChipsProps {
   resource: Resource
@@ -81,7 +82,7 @@ function useFilterValueText(filter: FilterManifest, value: string): string {
   // The same query as RelationSelect's selected label, so both share the cache.
   const record = useQuery({
     queryKey: related ? [...sourceOf(related).listKey({}), 'label', value] : ['filter-chip', value],
-    queryFn: () => sourceOf(related!).get(Number(value)),
+    queryFn: () => sourceOf(related!).get(parseRecordId(value) ?? value),
     enabled: !!related,
   })
   if (related) {

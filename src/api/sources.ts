@@ -1,18 +1,21 @@
 // The generated list/get functions of each resource, by manifest key, for generic components that read a
 // resource: relation inputs and filters, embedded links, related lists and the breadcrumbs. One line per resource.
+import type { RecordId } from '@/lib/ids'
 import type { ResourceKey } from '@/manifest'
 
 /** A record as generic code sees it: an id and fields read through the manifest. */
-export type AnyRecord = { id: number } & object
+export type AnyRecord = { id: RecordId } & object
 
+// Methods, not function properties: a resource registers its generated functions, whose id parameter is either
+// `number` or `string`, and method parameters accept the narrower type.
 export interface ResourceSource {
   /** The paged list endpoint (`q`, `page`, `size`, `sort` and the resource's filters). */
-  list: (params: Record<string, unknown>) => Promise<{ content?: AnyRecord[]; page?: { totalElements?: number } }>
-  get: (id: number) => Promise<AnyRecord>
+  list(params: Record<string, unknown>): Promise<{ content?: AnyRecord[]; page?: { totalElements?: number } }>
+  get(id: RecordId): Promise<AnyRecord>
   /** orval's list query key, so invalidating a resource's lists also refreshes these queries. */
-  listKey: (params: Record<string, unknown>) => readonly unknown[]
+  listKey(params: Record<string, unknown>): readonly unknown[]
   /** orval's get query key, so the breadcrumbs share the record the detail or edit page already loaded. */
-  getKey: (id: number) => readonly unknown[]
+  getKey(id: RecordId): readonly unknown[]
 }
 
 // One line per resource, e.g. (imports from '@/api/generated/endpoints/orders/orders'):

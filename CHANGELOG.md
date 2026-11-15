@@ -24,6 +24,14 @@ section to the version and date and tags the commit `v<version>`.
   - **Separate services:** they sit behind one gateway, with one merged contract.
 
   Docs only. The UI, the manifest and the `contract-auditor` don't support it yet (#9). It's opt-in, so existing APIs and projects don't need to change anything.
+- Record ids may be UUIDs (`format: uuid`) as well as integers, as `docs/API-CONTRACT.md` section 11 allows.
+  `parseRecordId` in `src/lib/ids.ts` tells them apart by shape, so a resource needs no id-type setting. Routes,
+  breadcrumbs, relation pickers, filter chips and related lists accept both. A feature with UUID ids reads its
+  route with `useUuidParam()`; `useIdParam()` still returns integers only.
+
+### Changed
+- `ResourceSource` in `src/api/sources.ts` declares its functions as methods, so a resource's generated functions
+  with a `number` or a `string` id both register. Existing registrations don't need to change.
 
 ## [2.0.4] - 2026-11-12
 
