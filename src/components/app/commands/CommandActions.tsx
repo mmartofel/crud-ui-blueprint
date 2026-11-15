@@ -10,8 +10,12 @@ import { ActionDialog } from './ActionDialog'
 
 /** What a command resource's detail page needs from its feature: the generated command functions per action. */
 export interface CommandHandlers {
-  /** One function per action name, e.g. `{ cancel: (data) => cancel.mutateAsync({ id, data }) }`. */
-  run: Record<string, (body: Record<string, unknown> & { version: number }) => Promise<CommandResult>>
+  /**
+   * One function per action name, e.g. `{ cancel: (data) => cancel.mutateAsync({ id, data }) }`. The body is the
+   * action's input, validated with its schema, plus `version`: typed `never` here, so each generated mutation keeps
+   * its own request type (`CancelOrderRequest`).
+   */
+  run: Record<string, (body: never) => Promise<CommandResult>>
   /** The generated body schema of each action that has input, without `version`. */
   schemas?: Record<string, z.ZodObject>
   /** Allowed values of the actions' enum fields. */
@@ -57,7 +61,7 @@ export function CommandActions({ resource, record, commands, onSent, onStale, on
         record={record}
         schema={current ? commands.schemas?.[current.name] : undefined}
         enumValues={commands.enumValues}
-        run={(body) => commands.run[current!.name](body)}
+        run={(body) => commands.run[current!.name](body as never)}
         onSent={(result) => {
           commands.onChanged(result)
           toast.success(t('common.command.sent', { action: tDynamic(t, actionLabelKey(resource.key, current!.name)) }))
