@@ -15,6 +15,16 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+### Added
+- `docs/API-CONTRACT.md` section 11, "Command resources": the contract rules for CQRS / Event Sourcing APIs.
+  - **Commands:** a create returns 201 and an action returns 202, both with `{id, version}`. There is no `PUT` or `DELETE`.
+  - **Read model:** it carries `version`, `status` and `allowedActions`.
+  - **Rules:** a broken rule returns 409 `invalid-state`. UUID ids are allowed.
+  - **Consistency:** the UI waits until the read model has caught up with the command.
+  - **Separate services:** they sit behind one gateway, with one merged contract.
+
+  Docs only. The UI, the manifest and the `contract-auditor` don't support it yet (#9). It's opt-in, so existing APIs and projects don't need to change anything.
+
 ## [2.0.4] - 2026-11-12
 
 Dependency updates. No migration needed.
