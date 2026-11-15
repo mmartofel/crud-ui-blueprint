@@ -1,8 +1,19 @@
 import { useId, type ReactNode } from 'react'
-import { useController, useWatch, type Control, type FieldValues, type Path } from 'react-hook-form'
+import { Plus, X } from 'lucide-react'
+import {
+  useController,
+  useFieldArray,
+  useFormState,
+  useWatch,
+  type ArrayPath,
+  type Control,
+  type FieldValues,
+  type Path,
+} from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { CountrySelect } from '@/components/app/CountrySelect'
 import { RelationSelect } from '@/components/app/RelationSelect'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -11,7 +22,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { enumLabelKey, fieldLabelKey, groupLabelKey, tDynamic } from '@/i18n/dynamic'
 import { cn } from '@/lib/utils'
-import { isObjectGroup, type Resource } from '@/manifest'
+import {
+  emptyListItem,
+  getPath,
+  isListGroup,
+  isObjectGroup,
+  withoutIndices,
+  type FormListGroup,
+  type Resource,
+} from '@/manifest'
 
 // Radix Select cannot use '' as an item value; this stands for "no value" in the UI only.
 const NONE = '__none__'
@@ -61,9 +80,9 @@ export function FormFields<T extends FieldValues, TOut extends FieldValues = T>(
           resource={resource}
           name={field as Path<T>}
           control={control}
-          required={required.includes(field)}
-          options={enumValues[field]}
-          limits={numberLimits[field]}
+          required={required.includes(withoutIndices(field))}
+          options={enumValues[withoutIndices(field)]}
+          limits={numberLimits[withoutIndices(field)]}
           relationLabel={relationLabels[field]}
         />
       ))}
@@ -71,8 +90,9 @@ export function FormFields<T extends FieldValues, TOut extends FieldValues = T>(
   )
 
   // As on the detail page: the top-level rows in one "Details" card, then a titled card per nested object.
-  const rows = resource.form.groups.filter((group): group is string[] => !isObjectGroup(group))
+  const rows = resource.form.groups.filter((group): group is string[] => Array.isArray(group))
   const objects = resource.form.groups.filter(isObjectGroup)
+  const lists = resource.form.groups.filter(isListGroup)
 
   if (bare) return <div className="flex flex-col gap-5">{rows.map(row)}</div>
 
@@ -99,7 +119,76 @@ export function FormFields<T extends FieldValues, TOut extends FieldValues = T>(
           </div>
         </fieldset>
       ))}
+      {lists.map((group) => (
+        <ListFieldset key={group.list} resource={resource} group={group} control={control} row={row} />
+      ))}
     </>
+  )
+}
+
+/**
+ * A list of objects (`form.groups` entry `{ list, groups }`) as a fieldset card: one labelled row group per item with
+ * its inputs and a Remove button, and Add below. It never goes below `min` items (default 1).
+ */
+function ListFieldset<T extends FieldValues, TOut extends FieldValues>({
+  resource,
+  group,
+  control,
+  row,
+}: {
+  resource: Resource
+  group: FormListGroup
+  control: Control<T, unknown, TOut>
+  row: (fields: string[]) => ReactNode
+}) {
+  const { t } = useTranslation()
+  const { fields, append, remove } = useFieldArray({ control, name: group.list as ArrayPath<T> })
+  const { errors } = useFormState({ control, name: group.list as Path<T> })
+  // An error about the list itself (too few items), not about one of its fields.
+  const listError = getPath(errors, group.list) as { message?: string; root?: { message?: string } } | undefined
+  const listMessage = listError?.root?.message ?? listError?.message
+  const min = group.min ?? 1
+  const legend = tDynamic(t, groupLabelKey(resource.key, group.list))
+  return (
+    <fieldset className="min-w-0 rounded-xl border bg-card py-6 text-card-foreground shadow-sm">
+      <legend className="float-left mb-6 w-full px-6 text-section-title">{legend}</legend>
+      <div className="clear-both flex flex-col gap-4 px-6">
+        {listMessage && <p className="text-sm text-destructive">{listMessage}</p>}
+        {fields.map((item, index) => (
+          <div
+            key={item.id}
+            role="group"
+            aria-label={t('common.form.listRow', { number: index + 1 })}
+            className="flex min-w-0 items-start gap-3 border-b pb-4 last:border-b-0 last:pb-0"
+          >
+            <div className="flex min-w-0 flex-1 flex-col gap-5">
+              {group.groups.map((fieldsRow) => row(fieldsRow.map((field) => `${group.list}.${index}.${field}`)))}
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="mt-6 shrink-0"
+              aria-label={t('common.form.removeRow', { number: index + 1 })}
+              disabled={fields.length <= min}
+              onClick={() => remove(index)}
+            >
+              <X aria-hidden />
+            </Button>
+          </div>
+        ))}
+        <div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => append(emptyListItem(group) as Parameters<typeof append>[0])}
+          >
+            <Plus aria-hidden />
+            {t('common.form.addRow')}
+          </Button>
+        </div>
+      </div>
+    </fieldset>
   )
 }
 
@@ -135,7 +224,9 @@ function FormField<T extends FieldValues, TOut extends FieldValues>({
     // Fields that must not be earlier than this one are validated again when it changes.
     rules: { deps: dependents(resource, name) as Path<T>[] },
   })
-  const config = resource.form.fields?.[name] ?? { input: 'text' as const }
+  // A list item's field (`lines.0.itemId`) is configured and labelled as `lines.itemId`.
+  const fieldKey = withoutIndices(name)
+  const config = resource.form.fields?.[fieldKey] ?? { input: 'text' as const }
   // The earliest allowed date (`notBefore`); the hook needs a name even when the field has no such rule.
   const earliest = useWatch({ control, name: (config.notBefore ?? name) as Path<T> }) as unknown
   const invalid = !!fieldState.error
@@ -180,7 +271,7 @@ function FormField<T extends FieldValues, TOut extends FieldValues>({
             onBlur={onBlur}
           />
           <Label htmlFor={id} className="min-h-11 flex-1 cursor-pointer">
-            {tDynamic(t, fieldLabelKey(resource.key, name))}
+            {tDynamic(t, fieldLabelKey(resource.key, fieldKey))}
           </Label>
         </div>
         {fieldState.error?.message && (
@@ -240,7 +331,7 @@ function FormField<T extends FieldValues, TOut extends FieldValues>({
   return (
     <div data-form-field className="flex min-w-0 flex-col gap-2">
       <Label htmlFor={id}>
-        {tDynamic(t, fieldLabelKey(resource.key, name))}
+        {tDynamic(t, fieldLabelKey(resource.key, fieldKey))}
         {required && (
           <>
             <span aria-hidden className="text-destructive">

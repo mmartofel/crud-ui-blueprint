@@ -46,6 +46,14 @@ section to the version and date and tags the commit `v<version>`.
   - **Opt-in:** existing resources don't change. `ResourceList`'s and `ResourceDetail`'s `remove`/`onDeleted` are
     optional now, because a command resource has none.
 
+- **List fields** in forms (#9).
+  - **In the manifest:** a `form.groups` entry `{ list, groups, min? }` is a fieldset with a row of inputs per item,
+    which the user adds and removes, never below `min` (default 1). `form.fields` keys and labels use the path
+    without the index (`lines.itemId`).
+  - **API errors:** a field error with an index (`lines[1].itemId`) lands on that row.
+  - **Detail page:** `detail.lists: [{ field, columns }]` shows a list of objects as a table.
+  - **Helpers:** the generic form helpers (`formResolver`, `isRequired`, `numberLimits`) handle lists.
+
 ### Changed
 - `FormFields` takes `bare` to render its rows without the "Details" card (an action's input in a dialog).
 - `ResourceSource` in `src/api/sources.ts` declares its functions as methods, so a resource's generated functions

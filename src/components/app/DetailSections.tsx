@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { fieldLabelKey, groupLabelKey, tDynamic } from '@/i18n/dynamic'
-import { detailSections, getPath, objectFields, type Resource } from '@/manifest'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { detailSections, getPath, isNumeric, objectFields, type DetailListManifest, type Resource } from '@/manifest'
 import { renderFieldValue } from './formatValue'
 import { SectionCard } from './SectionCard'
 
@@ -42,6 +43,9 @@ export function DetailSections({ resource, record }: { resource: Resource; recor
           </SectionCard>
         )
       })}
+      {(resource.detail.lists ?? []).map((list) => (
+        <DetailList key={list.field} resource={resource} record={record} list={list} />
+      ))}
     </div>
   )
   if (meta.length === 0) return cards
@@ -77,5 +81,55 @@ function DetailEntry({ label, value }: { label: string; value: ReactNode }) {
         {value || t('common.detail.empty')}
       </dd>
     </div>
+  )
+}
+
+/**
+ * A list of objects in the record (`detail.lists`, an order's lines) as a table in its own card, titled like the
+ * form's list fieldset (`<resource>.groups.<field>`). Values are formatted by their path (`formats` key `lines.unitPrice`).
+ */
+function DetailList({ resource, record, list }: { resource: Resource; record: object; list: DetailListManifest }) {
+  const { t, i18n } = useTranslation()
+  const language = i18n.resolvedLanguage ?? i18n.language
+  const items = getPath(record, list.field)
+  const rows = Array.isArray(items) ? (items as object[]) : []
+  const path = (column: string) => `${list.field}.${column}`
+  return (
+    <SectionCard title={tDynamic(t, groupLabelKey(resource.key, list.field))}>
+      {rows.length === 0 ? (
+        <p className="text-muted-foreground italic">{t('common.detail.empty')}</p>
+      ) : (
+        <div className="-mx-6 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {list.columns.map((column) => (
+                  <TableHead
+                    key={column}
+                    className={isNumeric(resource, path(column)) ? 'px-6 text-right' : 'px-6'}
+                  >
+                    {tDynamic(t, fieldLabelKey(resource.key, path(column)))}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row, index) => (
+                <TableRow key={index}>
+                  {list.columns.map((column) => (
+                    <TableCell
+                      key={column}
+                      className={isNumeric(resource, path(column)) ? 'px-6 text-right tabular-nums' : 'px-6'}
+                    >
+                      {renderFieldValue(resource, path(column), getPath(row, column), t, language)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </SectionCard>
   )
 }

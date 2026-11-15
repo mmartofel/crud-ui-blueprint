@@ -135,7 +135,10 @@
     "loadingRecords": "Loading…",
     "unknownRecord": "Unknown record",
     "details": "Details",
-    "requiredHint": "Fields marked * are required."
+    "requiredHint": "Fields marked * are required.",
+    "addRow": "Add a row",
+    "removeRow": "Remove row {{number}}",
+    "listRow": "Row {{number}}"
   },
   "toast": {
     "created": "{{name}} was created.",

@@ -40,8 +40,28 @@ export interface FormObjectGroup {
   groups: string[][]
 }
 
-/** A row of fields, or a fieldset for a nested object. */
-export type FormGroup = string[] | FormObjectGroup
+/**
+ * A list of objects in the form (an order's `lines: [{ itemId, quantity }]`): a fieldset with one row of inputs per
+ * item, which the user adds and removes. Rows name fields relative to the item; `fields` keys and labels use the
+ * path without the index (`lines.itemId`), the API's field errors the index (`lines[1].itemId`).
+ */
+export interface FormListGroup {
+  list: string
+  groups: string[][]
+  /** Items a new record starts with, and the fewest the user can leave (default 1). */
+  min?: number
+}
+
+/** A row of fields, a fieldset for a nested object, or a fieldset for a list of objects. */
+export type FormGroup = string[] | FormObjectGroup | FormListGroup
+
+/** A list of objects shown in the detail page as a table (an order's lines). */
+export interface DetailListManifest {
+  /** The response field that holds the list. */
+  field: string
+  /** The item fields shown as columns, labelled `<resource>.fields.<field>.<column>`. */
+  columns: string[]
+}
 
 /** A named query parameter of the list endpoint; the URL uses the same name. */
 export interface FilterManifest {
@@ -100,6 +120,8 @@ export interface ResourceManifest {
     /** A `format: badge` field shown next to the record name in the detail header instead of among the fields. */
     status?: string
     related?: RelatedManifest[]
+    /** Lists of objects in the record, each shown as a table after the fields. */
+    lists?: DetailListManifest[]
   }
   form: {
     /** Rows of fields shown side by side from `md`, and fieldsets for nested objects. */
@@ -173,7 +195,22 @@ export function canWrite(userRoles: readonly string[], resource: Resource): bool
   return hasAnyRole(userRoles, resource.permissions.write)
 }
 
-export const isObjectGroup = (group: FormGroup): group is FormObjectGroup => !Array.isArray(group)
+export const isObjectGroup = (group: FormGroup): group is FormObjectGroup => !Array.isArray(group) && 'object' in group
+
+export const isListGroup = (group: FormGroup): group is FormListGroup => !Array.isArray(group) && 'list' in group
+
+/** The list fieldsets of the form. */
+export function listGroups(resource: Resource): FormListGroup[] {
+  return resource.form.groups.filter(isListGroup)
+}
+
+/** One empty item of a list fieldset: '' for every field, as a new form starts. */
+export function emptyListItem(group: FormListGroup): Record<string, string> {
+  return Object.fromEntries(group.groups.flat().map((field) => [field, '']))
+}
+
+/** A form path without list indices (`lines.0.itemId` -> `lines.itemId`): the key of `form.fields` and of labels. */
+export const withoutIndices = (path: string) => path.replace(/\.\d+(?=\.|$)/g, '')
 
 /** The sub-fields of a nested object, from its form fieldset (`address` -> `street`, `city`, ...). */
 export function objectFields(resource: Resource, object: string): string[] | undefined {
@@ -181,11 +218,16 @@ export function objectFields(resource: Resource, object: string): string[] | und
   return group && isObjectGroup(group) ? group.groups.flat() : undefined
 }
 
-/** Every form field as a full path (`firstName`, `address.city`), in form order. */
+/**
+ * Every form field as a full path (`firstName`, `address.city`), in form order. A list item's field has no index
+ * (`lines.itemId`): it stands for that field in every item.
+ */
 export function formFieldPaths(resource: Resource): string[] {
-  return resource.form.groups.flatMap((group) =>
-    isObjectGroup(group) ? group.groups.flat().map((field) => `${group.object}.${field}`) : group,
-  )
+  return resource.form.groups.flatMap((group) => {
+    if (isObjectGroup(group)) return group.groups.flat().map((field) => `${group.object}.${field}`)
+    if (isListGroup(group)) return group.groups.flat().map((field) => `${group.list}.${field}`)
+    return group
+  })
 }
 
 /**
