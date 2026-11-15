@@ -1,0 +1,29 @@
+{
+  "title": "Zamówienia",
+  "newTitle": "Nowe zamówienie",
+  "editTitle": "Edycja: {{name}}",
+  "empty": "Nie ma jeszcze zamówień.",
+  "fields": {
+    "personId": "Klient",
+    "addressId": "Adres",
+    "total": "Suma",
+    "placedAt": "Złożono",
+    "status": "Status",
+    "reason": "Powód",
+    "lines": {
+      "itemId": "Pozycja",
+      "quantity": "Ilość",
+      "name": "Pozycja",
+      "unitPrice": "Cena jednostkowa"
+    }
+  },
+  "groups": {
+    "lines": "Pozycje"
+  },
+  "actions": {
+    "cancel": {
+      "label": "Anuluj zamówienie",
+      "text": "Anuluj zamówienie. Zrealizowaną płatność można wtedy zwrócić."
+    }
+  }
+}

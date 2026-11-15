@@ -7,11 +7,15 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
 
 /**
  * Form inputs hold '' for "no value"; the API expects the field to be left out. Applies to nested objects too,
- * and a nested object with no values left is left out as a whole.
+ * and a nested object with no values left is left out as a whole. A list keeps its items, each cleaned the same way:
+ * an empty item stays, so its required fields are reported instead of the item silently disappearing.
  */
 export function emptyToUndefined<T extends Record<string, unknown>>(values: T): T {
   const entries = Object.entries(values).map(([key, value]) => {
     if (value === '') return [key, undefined]
+    if (Array.isArray(value)) {
+      return [key, value.map((item) => (isPlainObject(item) ? emptyToUndefined(item) : item === '' ? undefined : item))]
+    }
     if (isPlainObject(value)) {
       const nested = emptyToUndefined(value)
       return [key, Object.values(nested).some((v) => v !== undefined) ? nested : undefined]
@@ -30,16 +34,32 @@ export interface NotBeforeRule {
 const valueAt = (values: unknown, path: string) =>
   path.split('.').reduce<unknown>((value, key) => (isPlainObject(value) ? value[key] : undefined), values)
 
-/** Text inputs hold strings: number and relation (id) fields become numbers; a non-number stays text for Zod to reject. */
+/** The objects a path's parent stands for: `lines.*.quantity` names the `quantity` of every item of `lines`. */
+function parentsAt(root: unknown, keys: readonly string[]): unknown[] {
+  return keys.reduce<unknown[]>(
+    (nodes, key) =>
+      nodes.flatMap((node) => {
+        if (key === '*') return Array.isArray(node) ? node : []
+        return isPlainObject(node) || Array.isArray(node) ? [(node as Record<string, unknown>)[key]] : []
+      }),
+    [root],
+  )
+}
+
+/**
+ * Text inputs hold strings: number and relation (id) fields become numbers; a non-number (a UUID, a typo) stays text
+ * for Zod to judge. A `*` in a path stands for every item of a list (`lines.*.quantity`).
+ */
 function toNumbers(values: Record<string, unknown>, paths: readonly string[]) {
   const result = structuredClone(values)
   for (const path of paths) {
     const keys = path.split('.')
-    const parent = keys.slice(0, -1).reduce<unknown>((node, key) => (isPlainObject(node) ? node[key] : undefined), result)
     const key = keys.at(-1)!
-    if (!isPlainObject(parent) || typeof parent[key] !== 'string' || parent[key] === '') continue
-    const number = Number(parent[key])
-    if (!Number.isNaN(number)) parent[key] = number
+    for (const parent of parentsAt(result, keys.slice(0, -1))) {
+      if (!isPlainObject(parent) || typeof parent[key] !== 'string' || parent[key] === '') continue
+      const number = Number(parent[key])
+      if (!Number.isNaN(number)) parent[key] = number
+    }
   }
   return result
 }
@@ -47,7 +67,7 @@ function toNumbers(values: Record<string, unknown>, paths: readonly string[]) {
 interface FormResolverOptions {
   /** Cross-field rules from the manifest (`notBefore`). */
   rules?: readonly NotBeforeRule[]
-  /** Paths of number and relation inputs, whose text values are sent as numbers. */
+  /** Paths of number and relation inputs, whose text values are sent as numbers; `*` for every list item. */
   numbers?: readonly string[]
 }
 
@@ -78,14 +98,26 @@ export function formResolver<TValues extends FieldValues, TBody extends FieldVal
     resolver(emptyToUndefined(toNumbers(values, numbers)) as TValues, context, options)
 }
 
-type AnySchema = z.ZodType & { unwrap?: () => z.ZodType; shape?: Record<string, z.ZodType> }
+type AnySchema = z.ZodType & { unwrap?: () => z.ZodType; shape?: Record<string, z.ZodType>; element?: z.ZodType }
 
-/** The schema at a dot path (`address.city`), through optional and default wrappers; undefined when absent. */
+/** Steps through optional and default wrappers, and from a list to its item. */
+function unwrapToObject(current: AnySchema | undefined): AnySchema | undefined {
+  let node = current
+  while (node && !node.shape && (node.unwrap || node.element)) {
+    node = (node.element ?? node.unwrap!()) as AnySchema
+  }
+  return node
+}
+
+/**
+ * The schema at a dot path (`address.city`), through optional and default wrappers; undefined when absent. A list
+ * item's field is reached with or without its index (`lines.0.quantity`, `lines.quantity`).
+ */
 function schemaAt(schema: z.ZodObject, path: string): z.ZodType | undefined {
   let current: AnySchema | undefined = schema as AnySchema
   for (const key of path.split('.')) {
-    while (current?.unwrap && !current.shape) current = current.unwrap() as AnySchema
-    current = current?.shape?.[key] as AnySchema | undefined
+    if (/^\d+$/.test(key)) continue
+    current = unwrapToObject(current)?.shape?.[key] as AnySchema | undefined
   }
   return current
 }

@@ -42,8 +42,9 @@ The tag has `POST /{id}/<action>` operations and no `PUT` or `DELETE` (API-CONTR
 - `actions:` one entry per action of the contract, `name` = the path segment. `form` lists the action body's fields
   besides `version` (none: a confirmation only); `destructive: true` for cancel, refund and the like.
 - `display` from fields the read model always has: there is no name to show before the record is read.
-- A create body with a list of objects (an order's `lines`) cannot be entered yet (PATTERNS.md section 4, Missing):
-  say so in the draft and leave that resource's create page out.
+- A request body with a list of objects (an order's `lines`) is a `{ list: lines, groups: [[itemId, quantity]] }`
+  entry in `form.groups`; the response's list goes into `detail.lists` (`{ field: lines, columns: [...] }`). Labels:
+  `fields.lines.<field>` and `groups.lines`.
 
 ## Phase B: build (after approval)
 - [ ] Manifest: write the approved entry; add the key to `ResourceKey` (`src/manifest/index.ts`), a new `nav.icon`

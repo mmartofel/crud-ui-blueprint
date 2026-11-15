@@ -290,8 +290,10 @@ Known gaps, left as is:
 - ~~The app name~~: in the manifest since D2 (`app.name`).
 - ~~Relations between resources~~: done in 9b (`input/format: relation`, relation filters, `detail.related`).
   Sorting by a relation column is not offered: the contract does not document a sort key for it.
-- **List fields in a form** (an order's `lines: [{ itemId, quantity }]`): a create body with an array of objects
-  cannot be entered yet. Needed by the orders of the order management API (#9).
+- ~~List fields in a form~~: done for #9. `form.groups` takes `{ list, groups, min? }`: a fieldset with one row group
+  per item, Add and Remove (never below `min`, default 1). `form.fields` keys and labels use the path without the
+  index (`lines.itemId`); the API's field errors carry it (`lines[1].itemId`) and land on that row. `detail.lists:
+  [{ field, columns }]` shows such a list as a table on the detail page.
 
 **Added for command resources (#9, API-CONTRACT.md section 11):**
 - `kind: commands` and `actions: [{ name, form?, destructive? }]`. `form` is the create form only; there is no edit

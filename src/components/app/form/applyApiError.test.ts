@@ -33,6 +33,18 @@ describe('applyApiError', () => {
     expect(setError.mock.calls[1][0]).toBe('address.countryCode')
   })
 
+  it('maps an indexed list field (lines[1].itemId) to its row in the form', () => {
+    const setError = vi.fn()
+    const error = new ApiError(400, 'Bad Request', 'Item 99 does not exist', [
+      { field: 'lines[1].itemId', code: 'not-found', message: 'does not exist' },
+    ])
+
+    expect(applyApiError(error, setError, ['personId', 'lines.itemId', 'lines.quantity'], i18n.t)).toEqual({
+      kind: 'fields',
+    })
+    expect(setError.mock.calls[0][0]).toBe('lines.1.itemId')
+  })
+
   it('shows an error without a field (in-use) in the form alert', () => {
     const error = new ApiError(409, 'Conflict', undefined, [{ code: 'in-use', message: 'still referenced' }])
     expect(applyApiError(error, vi.fn(), fields, i18n.t)).toEqual({ kind: 'form', message: 'It is still used by other records.' })

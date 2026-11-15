@@ -31,8 +31,19 @@ export function retranslateServerError(t: TFunction, error: { type?: unknown; me
 }
 
 /**
+ * The form path of an API field error: `lines[1].itemId` becomes `lines.1.itemId`; `known` when the form has that
+ * field (`fields` names a list item's field without its index: `lines.itemId`).
+ */
+function formPath(field: string, fields: readonly string[]): { path: string; known: boolean } {
+  const path = field.replace(/\[(\d+)\]/g, '.$1')
+  const pattern = path.replace(/\.\d+(?=\.|$)/g, '')
+  return { path, known: fields.includes(path) || fields.includes(pattern) }
+}
+
+/**
  * Maps a failed save to the form: field errors via `setError`, a stale-version conflict, or a form-level message.
- * `fields` are the form's field paths; a nested field's error has the same dot path (`address.countryCode`).
+ * `fields` are the form's field paths; a nested field's error has the same dot path (`address.countryCode`), a list
+ * item's field its index (`lines[1].itemId`).
  */
 export function applyApiError<T extends FieldValues>(
   error: unknown,
@@ -51,9 +62,10 @@ export function applyApiError<T extends FieldValues>(
   const unknown: string[] = []
   let focused = false
   for (const { field, code, message } of error.errors) {
-    if (field && fields.includes(field)) {
+    const target = field ? formPath(field, fields) : undefined
+    if (field && target?.known) {
       setError(
-        field as Path<T>,
+        target.path as Path<T>,
         { type: serverErrorType(code), message: serverErrorMessage(t, code, message) },
         { shouldFocus: !focused },
       )

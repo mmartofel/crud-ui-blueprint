@@ -176,3 +176,51 @@ resources:
 
     formats:
       updatedAt: dateTime
+
+  # A command resource whose create body has a list of objects (lines), from the order management API.
+  orders:
+    kind: commands
+    route: /orders
+    nav:
+      icon: shopping-cart
+      order: 4
+    display: "{status} {total}"
+    permissions:
+      read: [orders-viewer, orders-editor]
+      write: [orders-editor]
+
+    list:
+      defaultSort: placedAt,desc
+      pageSize: 20
+      pageSizes: [10, 20, 50]
+      columns:
+        - { field: placedAt, sortable: true, format: date }
+        - { field: total,    sortable: true }
+
+    detail:
+      fields: [total, placedAt]
+      lists:
+        - { field: lines, columns: [name, quantity, unitPrice] }
+
+    form:
+      groups:
+        - [personId, addressId]
+        - list: lines
+          groups:
+            - [itemId, quantity]
+      fields:
+        personId: { input: number }
+        addressId: { input: number }
+        lines.itemId: { input: number }
+        lines.quantity: { input: number }
+
+    actions:
+      - name: cancel
+        destructive: true
+        form:
+          groups:
+            - [reason]
+
+    formats:
+      total: number
+      lines.unitPrice: number

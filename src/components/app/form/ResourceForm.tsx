@@ -8,7 +8,15 @@ import type { z } from 'zod'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { fieldLabelKey, tDynamic } from '@/i18n/dynamic'
-import { formatDisplay, formFieldPaths, getPath, isCommandResource, type Resource } from '@/manifest'
+import {
+  emptyListItem,
+  formatDisplay,
+  formFieldPaths,
+  getPath,
+  isCommandResource,
+  listGroups,
+  type Resource,
+} from '@/manifest'
 import { renderFieldValue } from '../formatValue'
 import { ConfirmDialog } from '../ConfirmDialog'
 import { SectionCard } from '../SectionCard'
@@ -124,13 +132,36 @@ export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.
     const from = inputs[path]?.from
     return from ? getPath(latest, `${from}.id`) : getPath(latest, path)
   }
-  const initialValues = (latest?: object) =>
-    toFormValues(
-      fields,
+  const lists = listGroups(resource)
+  const isListField = (path: string) => lists.some((group) => path.startsWith(`${group.list}.`))
+  // Lists start with the record's items, or `min` empty items (default 1) for a new record.
+  const listValues = (latest?: object): FormValues =>
+    Object.fromEntries(
+      lists.map((group) => {
+        const items = latest ? getPath(latest, group.list) : undefined
+        const values = Array.isArray(items)
+          ? items.map((item: object) =>
+              toFormValues(group.groups.flat(), (field) => getPath(item, field), () => false),
+            )
+          : Array.from({ length: group.min ?? 1 }, () => emptyListItem(group))
+        return [group.list, values]
+      }),
+    )
+  const initialValues = (latest?: object) => ({
+    ...toFormValues(
+      fields.filter((path) => !isListField(path)),
       (path) => (latest ? recordValue(latest, path) : defaultValue(schema, path)),
       (path) => inputs[path]?.input === 'checkbox',
-    )
-  const numbers = fields.filter((path) => ['number', 'relation'].includes(inputs[path]?.input ?? ''))
+    ),
+    ...listValues(latest),
+  })
+  // Number and relation inputs are sent as numbers; a list item's field stands for every item (`lines.*.quantity`).
+  const numbers = fields
+    .filter((path) => ['number', 'relation'].includes(inputs[path]?.input ?? ''))
+    .map((path) => {
+      const group = lists.find((g) => path.startsWith(`${g.list}.`))
+      return group ? `${group.list}.*.${path.slice(group.list.length + 1)}` : path
+    })
   const limits = Object.fromEntries(
     fields.filter((path) => inputs[path]?.input === 'number').map((path) => [path, numberLimits(schema, path)]),
   )

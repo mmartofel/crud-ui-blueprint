@@ -22,7 +22,7 @@ describe('manifest', () => {
   })
 
   it('builds resources in nav order', () => {
-    expect(fixtureResources.map((r) => r.key)).toEqual(['persons', 'tasks', 'deliveries'])
+    expect(fixtureResources.map((r) => r.key)).toEqual(['persons', 'tasks', 'deliveries', 'orders'])
     expect(persons.route).toBe('/persons')
   })
 
