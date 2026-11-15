@@ -16,6 +16,14 @@ section to the version and date and tags the commit `v<version>`.
 ## [Unreleased]
 
 ### Added
+- `docs/API-CONTRACT.md` section 11, "Command resources": the contract rules for CQRS / Event Sourcing APIs.
+  - **Commands:** a create returns 201 and an action returns 202, both with `{id, version}`. There is no `PUT` or `DELETE`.
+  - **Read model:** it carries `version`, `status` and `allowedActions`.
+  - **Rules:** a broken rule returns 409 `invalid-state`. UUID ids are allowed.
+  - **Consistency:** the UI waits until the read model has caught up with the command.
+  - **Separate services:** they sit behind one gateway, with one merged contract.
+
+  Docs only. The UI, the manifest and the `contract-auditor` don't support it yet (#9). It's opt-in, so existing APIs and projects don't need to change anything.
 - Record ids may be UUIDs (`format: uuid`) as well as integers, as `docs/API-CONTRACT.md` section 11 allows.
   `parseRecordId` in `src/lib/ids.ts` tells them apart by shape, so a resource needs no id-type setting. Routes,
   breadcrumbs, relation pickers, filter chips and related lists accept both. A feature with UUID ids reads its
