@@ -21,7 +21,25 @@ section to the version and date and tags the commit `v<version>`.
   breadcrumbs, relation pickers, filter chips and related lists accept both. A feature with UUID ids reads its
   route with `useUuidParam()`; `useIdParam()` still returns integers only.
 
+- **Command resources** (`docs/API-CONTRACT.md` section 11, #9): `kind: commands` and `actions` in
+  `ui-manifest.yaml`.
+  - **Detail page:** offers the actions the record's `allowedActions` lists, in dialogs (`ActionDialog`): a
+    confirmation, or the action's input validated with its generated schema. Every command sends the `version`
+    shown.
+  - **Errors:** a stale version opens the reload dialog. `invalid-state` explains why the state no longer allows the
+    action and reads the record again.
+  - **Waiting:** after a command, the page reads until the record reaches the command's version
+    (`useAwaitVersion`), with "processing" and, after about 5 s, "still processing". A create opens the detail page,
+    which shows "processing" while the record isn't readable yet.
+  - **List:** a command resource has no edit or delete row menu.
+  - **Contract checker:** the `contract-auditor` checks command resources (C1-C8), with an eval on the order
+    management API's contract.
+  - **The `crud-resource` skill:** builds them.
+  - **Opt-in:** existing resources don't change. `ResourceList`'s and `ResourceDetail`'s `remove`/`onDeleted` are
+    optional now, because a command resource has none.
+
 ### Changed
+- `FormFields` takes `bare` to render its rows without the "Details" card (an action's input in a dialog).
 - `ResourceSource` in `src/api/sources.ts` declares its functions as methods, so a resource's generated functions
   with a `number` or a `string` id both register. Existing registrations don't need to change.
 

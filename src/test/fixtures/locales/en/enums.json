@@ -16,5 +16,11 @@
   "TaskState": {
     "false": "Open",
     "true": "Done"
+  },
+  "DeliveryStatus": {
+    "SCHEDULED": "Scheduled",
+    "SHIPPED": "Shipped",
+    "DELIVERED": "Delivered",
+    "CANCELLED": "Cancelled"
   }
 }

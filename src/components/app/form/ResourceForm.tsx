@@ -8,7 +8,7 @@ import type { z } from 'zod'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { fieldLabelKey, tDynamic } from '@/i18n/dynamic'
-import { formatDisplay, formFieldPaths, getPath, type Resource } from '@/manifest'
+import { formatDisplay, formFieldPaths, getPath, isCommandResource, type Resource } from '@/manifest'
 import { renderFieldValue } from '../formatValue'
 import { ConfirmDialog } from '../ConfirmDialog'
 import { SectionCard } from '../SectionCard'
@@ -18,7 +18,10 @@ import { defaultValue, formResolver, isRequired, numberLimits, type NotBeforeRul
 import { UnsavedChangesGuard } from './UnsavedChangesGuard'
 import type { RecordId } from '@/lib/ids'
 
-/** A record as the API returns it: every editable resource has an id and an optimistic-locking version. */
+/**
+ * A record as the API returns it: every editable resource has an id and an optimistic-locking version. A command
+ * resource's create returns only these two (`CommandResult`).
+ */
 export interface VersionedRecord {
   id: RecordId
   version: number
@@ -144,6 +147,8 @@ export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.
   const [formError, setFormError] = useState<string>()
   const [staleOpen, setStaleOpen] = useState(false)
   const [savedId, setSavedId] = useState<RecordId>()
+  // A command resource's create returns only `{ id, version }`, and the read model follows: the detail page waits.
+  const [savedVersion, setSavedVersion] = useState<number>()
 
   const form = useForm<FormValues, unknown, Body>({
     resolver: formResolver<FormValues, Body>(schema as unknown as z.ZodType<Body>, { rules, numbers }),
@@ -167,16 +172,23 @@ export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.
 
   // Navigate after the re-render that sets savedId has switched the unsaved-changes guard off.
   useEffect(() => {
-    if (savedId !== undefined) navigate(`${resource.route}/${savedId}`, { replace: true })
-  }, [savedId, navigate, resource.route])
+    if (savedId === undefined) return
+    const state = savedVersion === undefined ? undefined : { awaitVersion: savedVersion }
+    navigate(`${resource.route}/${savedId}`, { replace: true, state })
+  }, [savedId, savedVersion, navigate, resource.route])
 
   const onSubmit = async (body: Body) => {
     setFormError(undefined)
     try {
       const saved = await save(body, version)
       onSaved(saved)
-      const name = formatDisplay(resource.display, saved)
-      toast.success(t(record ? 'common.toast.updated' : 'common.toast.created', { name }))
+      if (isCommandResource(resource)) {
+        toast.success(t('common.toast.createdPending'))
+        setSavedVersion(saved.version)
+      } else {
+        const name = formatDisplay(resource.display, saved)
+        toast.success(t(record ? 'common.toast.updated' : 'common.toast.created', { name }))
+      }
       setSavedId(saved.id)
     } catch (error) {
       const outcome = applyApiError(error, form.setError, fields, t)

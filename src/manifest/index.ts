@@ -61,8 +61,29 @@ export interface RelatedManifest {
   limit: number
 }
 
+/**
+ * A command of a command resource (`kind: commands`, docs/API-CONTRACT.md section 11): `POST <route>/{id}/<name>`.
+ * Whether it is offered for a record comes from the record's `allowedActions`, never from the manifest; the manifest
+ * only says how it looks. Labels: `<resource>.actions.<name>.label` (button, dialog title) and `.text` (dialog text).
+ */
+export interface ActionManifest {
+  /** The action's path segment, as `allowedActions` lists it (`cancel`, `ship`). */
+  name: string
+  /** The action's input fields besides `version`, laid out like `form.groups`; without it the dialog only confirms. */
+  form?: { groups: string[][]; fields?: Record<string, FormFieldManifest> }
+  /** Ends or undoes something (cancel, refund): the confirm button is red. */
+  destructive?: boolean
+}
+
 export interface ResourceManifest {
   route: string
+  /**
+   * `crud` (default): list, detail, create, edit and delete. `commands`: created with `form`, then changed only through
+   * `actions`, with no edit form and no delete; reads are eventually consistent (docs/API-CONTRACT.md section 11).
+   */
+  kind?: 'crud' | 'commands'
+  /** `kind: commands`: the actions the detail page offers when a record's `allowedActions` lists them. */
+  actions?: ActionManifest[]
   nav: { icon: string; order: number }
   /** How one record is named, e.g. "{firstName} {lastName}". */
   display: string
@@ -135,6 +156,14 @@ export function getResource(key: ResourceKey): Resource {
 
 const hasAnyRole = (userRoles: readonly string[], allowed: readonly string[]) =>
   allowed.some((role) => userRoles.includes(role))
+
+/** A command resource: no edit and no delete; its records change through actions (docs/API-CONTRACT.md section 11). */
+export const isCommandResource = (resource: Resource) => resource.kind === 'commands'
+
+/** The manifest's actions that the record allows now, in manifest order. */
+export function offeredActions(resource: Resource, allowed: readonly string[] | undefined): ActionManifest[] {
+  return (resource.actions ?? []).filter((action) => allowed?.includes(action.name))
+}
 
 export function canRead(userRoles: readonly string[], resource: Resource): boolean {
   return hasAnyRole(userRoles, resource.permissions.read)

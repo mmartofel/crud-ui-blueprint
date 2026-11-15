@@ -14,7 +14,7 @@ The caller names one resource tag (e.g. `Persons`) or asks for all. Default: all
 
 ## Rules
 Read these first; they are the requirement:
-1. `docs/API-CONTRACT.md` (sections 1-8 always; section 9 for resources that have filters, relations or cross-field rules; section 10 is guidance for Spring Boot teams, not a check).
+1. `docs/API-CONTRACT.md` (sections 1-8 always; section 9 for resources that have filters, relations or cross-field rules; section 10 is guidance for Spring Boot teams, not a check; section 11 for command resources).
 2. `docs/PATTERNS.md` section 3: problems already met with contracts (Java-only regex, optional response fields,
    `*/*` responses, partial PUT, missing `errors[].code`).
 
@@ -47,6 +47,29 @@ Work from `contract/openapi.json` with `jq`. For the tag, find its operations an
 11. **Required text**: every `type: string` property listed in a request schema's `required` (create and update) has
     `minLength` of at least 1 (section 3). `minLength: 0` on a required field is a violation: in Spring Boot it comes
     from `@Size(max)` next to `@NotBlank` (section 10).
+
+## Command resources (section 11)
+A tag is a **command resource** when it has `POST` operations on `/{id}/<action>` paths and no `PUT` or `DELETE`. Say
+so in its verdict line (`Orders: Compliant (command resource)`). For it, checks 1, 3 and 7 above are replaced by:
+
+C1. **operationIds**: `list<Resource>s` and `get<Resource>` as in section 2; `create<Resource>` on `POST /api/<resources>`;
+    `<action><Resource>` on `POST /api/<resources>/{id}/<action>`, the path segment in kebab case. No `PUT`, no `DELETE`.
+C2. **Status codes**: 201 on the create, 202 on every action, both with a body `$ref` to `CommandResult`; 400 and 409 on
+    the create; 400, 404 and 409 on every action; 404 on `get`.
+C3. **CommandResult**: `id` and `version` both `required`; `version` an integer.
+C4. **Requests**: the create request has no `id` and no `version`; every action request (`<Action><Resource>Request`)
+    requires `version`, also when it has no other field.
+C5. **Read model**: `<Resource>Response` (and the list's item schema) requires `id`, `version`, `status` and
+    `allowedActions`; `status` is a string enum; `allowedActions` an array of strings.
+C6. **Ids**: `{id}` is `int64` or `type: string, format: uuid`, the same type in every operation of the tag and in
+    `CommandResult.id`.
+C7. **Errors**: `FieldError.code` contains `invalid-state`; `FieldError.field` is optional (record-level errors).
+C8. **Consistency note**: `info.description` says that the command resources are eventually consistent (a warning if
+    missing, not a violation).
+
+Checks 2, 4 (for the response), 5, 6, 8, 9, 10 and 11 apply unchanged. A relation in a command resource's response may
+point to a resource with the other id type (an order's `person` is an `int64` reference): `{ id, label }` with the id
+type of the record it points to.
 
 When the caller asks about a contract change, also run `git diff contract/openapi.json` (or against the last commit
 that touched it: `git log -n 2 --format=%h -- contract/openapi.json`) and list what changed per resource.

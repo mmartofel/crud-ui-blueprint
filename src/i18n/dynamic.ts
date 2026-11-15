@@ -13,3 +13,9 @@ export const enumLabelKey = (enumName: string, value: string) => `enums.${enumNa
 /** The label of a nested object (`address`): its form fieldset legend and its block title in the detail. */
 export const groupLabelKey = (resourceKey: string, object: string) => `${resourceKey}.groups.${object}`
 export const filterLabelKey = (resourceKey: string, param: string) => `${resourceKey}.filters.${param}`
+
+/** An action's label: its button, dialog title and confirm button (`<resource>.actions.<name>.label`). */
+export const actionLabelKey = (resource: string, action: string) => `${resource}.actions.${action}.label`
+
+/** What an action does, shown in its dialog (`<resource>.actions.<name>.text`). */
+export const actionTextKey = (resource: string, action: string) => `${resource}.actions.${action}.text`

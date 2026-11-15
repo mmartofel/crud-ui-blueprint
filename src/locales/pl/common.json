@@ -80,7 +80,8 @@
     "date-range": "Data końcowa nie może być wcześniejsza niż początkowa.",
     "not-found": "Wybrany rekord nie istnieje.",
     "in-use": "Rekord jest nadal używany przez inne rekordy.",
-    "step": "Podaj wielokrotność liczby {{step}}."
+    "step": "Podaj wielokrotność liczby {{step}}.",
+    "invalid-state": "Obecny stan na to nie pozwala."
   },
   "notifications": "Powiadomienia",
   "documentTitle": "{{page}} – {{app}}",
@@ -143,7 +144,8 @@
     "updated": "Zapisano: {{name}}.",
     "deleted": "Usunięto: {{name}}.",
     "deleteFailed": "Nie udało się usunąć: {{name}}.",
-    "deleteInUse": "Nie usunięto: {{name}}. Rekord jest nadal używany przez inne rekordy."
+    "deleteInUse": "Nie usunięto: {{name}}. Rekord jest nadal używany przez inne rekordy.",
+    "createdPending": "Zapisano. Za chwilę się pojawi."
   },
   "delete": {
     "title": "Usunąć: {{name}}?",
@@ -188,5 +190,15 @@
       "unexpected": "Nieoczekiwana odpowiedź o stanie ({{detail}}).",
       "incompatible": "Ta wersja API nie jest zgodna z kontraktem {{detail}}, dla którego zbudowano ekrany."
     }
+  },
+  "command": {
+    "sending": "Wysyłanie…",
+    "sent": "{{action}}: wysłano.",
+    "failedTitle": "Nie udało się tego wykonać",
+    "processingTitle": "Przetwarzanie…",
+    "processingText": "Zmiana jest zapisana i za chwilę pojawi się tutaj.",
+    "slowTitle": "Nadal trwa przetwarzanie",
+    "slowText": "Zmiana jest zapisana, ale pojawia się wolniej niż zwykle. Ta strona odświeży się sama.",
+    "staleText": "W międzyczasie ktoś inny zmienił ten rekord. Wczytaj go ponownie, aby zobaczyć obecny stan, i spróbuj jeszcze raz."
   }
 }
