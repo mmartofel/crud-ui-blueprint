@@ -20,9 +20,10 @@ import {
 import { DataState } from './DataState'
 import { relatedSubtitleFields } from './relatedFields'
 import { renderFieldValue } from './formatValue'
+import type { RecordId } from '@/lib/ids'
 
 /** The manifest's `detail.related` of one record: a card per related resource the user can read. */
-export function RelatedLists({ resource, id }: { resource: Resource; id: number }) {
+export function RelatedLists({ resource, id }: { resource: Resource; id: RecordId }) {
   const roles = useRoles()
   const related = (resource.detail.related ?? []).filter((r) => canRead(roles, getResource(r.resource)))
   return related.map((entry) => (
@@ -31,7 +32,7 @@ export function RelatedLists({ resource, id }: { resource: Resource; id: number 
 }
 
 /** Up to `limit` records of another resource filtered by this record's id, with a link to the filtered list. */
-function RelatedList({ entry, id, parent }: { entry: RelatedManifest; id: number; parent: ResourceKey }) {
+function RelatedList({ entry, id, parent }: { entry: RelatedManifest; id: RecordId; parent: ResourceKey }) {
   const { t, i18n } = useTranslation()
   const language = i18n.resolvedLanguage ?? i18n.language
   const related = getResource(entry.resource)

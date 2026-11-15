@@ -6,9 +6,10 @@ import { enumLabelKey, tDynamic } from '@/i18n/dynamic'
 import { formatDate, formatDateTime, formatNumber } from '@/i18n/format'
 import { countryName } from '@/lib/countries'
 import { fieldFormat, getResource, type Resource } from '@/manifest'
+import type { RecordId } from '@/lib/ids'
 
 /** An embedded reference to another record, as the API returns it (`assignee: { id, label }`). */
-const isReference = (value: unknown): value is { id: number; label: string } =>
+const isReference = (value: unknown): value is { id: RecordId; label: string } =>
   typeof value === 'object' && value !== null && 'id' in value && 'label' in value
 
 /**

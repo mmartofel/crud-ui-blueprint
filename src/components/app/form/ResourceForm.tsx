@@ -16,10 +16,11 @@ import { applyApiError, retranslateServerError } from './applyApiError'
 import { FormFields } from './FormFields'
 import { defaultValue, formResolver, isRequired, numberLimits, type NotBeforeRule } from './formResolver'
 import { UnsavedChangesGuard } from './UnsavedChangesGuard'
+import type { RecordId } from '@/lib/ids'
 
 /** A record as the API returns it: every editable resource has an id and an optimistic-locking version. */
 export interface VersionedRecord {
-  id: number
+  id: RecordId
   version: number
 }
 
@@ -142,7 +143,7 @@ export function ResourceForm<TRecord extends VersionedRecord, TSchema extends z.
   const [version, setVersion] = useState(record?.version)
   const [formError, setFormError] = useState<string>()
   const [staleOpen, setStaleOpen] = useState(false)
-  const [savedId, setSavedId] = useState<number>()
+  const [savedId, setSavedId] = useState<RecordId>()
 
   const form = useForm<FormValues, unknown, Body>({
     resolver: formResolver<FormValues, Body>(schema as unknown as z.ZodType<Body>, { rules, numbers }),

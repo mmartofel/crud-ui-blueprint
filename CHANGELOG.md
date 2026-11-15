@@ -15,6 +15,16 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+### Added
+- Record ids may be UUIDs (`format: uuid`) as well as integers, as `docs/API-CONTRACT.md` section 11 allows.
+  `parseRecordId` in `src/lib/ids.ts` tells them apart by shape, so a resource needs no id-type setting. Routes,
+  breadcrumbs, relation pickers, filter chips and related lists accept both. A feature with UUID ids reads its
+  route with `useUuidParam()`; `useIdParam()` still returns integers only.
+
+### Changed
+- `ResourceSource` in `src/api/sources.ts` declares its functions as methods, so a resource's generated functions
+  with a `number` or a `string` id both register. Existing registrations don't need to change.
+
 ## [2.0.4] - 2026-11-12
 
 Dependency updates. No migration needed.

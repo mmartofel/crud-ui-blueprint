@@ -2,6 +2,7 @@
 // (src/test/fixtures/api). Deterministic, so screenshots stay stable.
 import type { ResourceSource } from '@/api/sources'
 import { formatDisplay, getPath, type Resource } from '@/manifest'
+import type { RecordId } from '@/lib/ids'
 
 const firstNames = ['Anna', 'Piotr', 'Maria', 'Tomasz', 'Ewa', 'James', 'Olivia', 'Lukas', 'Sofia', 'Noah', 'Zofia', 'Jan']
 const lastNames = ['Kowalska', 'Nowak', 'Wiśniewska', 'Wójcik', 'Lewandowska', 'Smith', 'Brown', 'Müller', 'Rossi', 'Martin', 'Kamińska', 'Zieliński']
@@ -56,7 +57,7 @@ export const tasks = Array.from({ length: 18 }, (_, i) => {
 })
 
 /** Deletes a sample record in place (the gallery list's row menu). */
-export function removeRecord(records: { id: number }[], id: number) {
+export function removeRecord(records: { id: RecordId }[], id: RecordId) {
   const index = records.findIndex((record) => record.id === id)
   if (index >= 0) records.splice(index, 1)
 }
@@ -66,7 +67,7 @@ export function removeRecord(records: { id: number }[], id: number) {
  * pickers): `q` matches the display name, other params filter by equality (`<x>Id` by the embedded `<x>.id`).
  */
 export function memorySource(resource: Resource, records: object[]): ResourceSource {
-  const all = records as ({ id: number } & object)[]
+  const all = records as ({ id: RecordId } & object)[]
   return {
     listKey: (params) => ['gallery', resource.key, params],
     getKey: (id) => ['gallery', resource.key, id],

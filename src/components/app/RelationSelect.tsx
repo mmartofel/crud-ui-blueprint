@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils'
 import { formatDisplay, getResource, type ResourceKey } from '@/manifest'
 import { pickerTriggerClass } from './pickerTrigger'
+import { parseRecordId } from '@/lib/ids'
 
 const DEBOUNCE_MS = 300
 const PAGE_SIZE = 20
@@ -72,7 +73,7 @@ export function RelationSelect({
   const knownName = picked?.id === value ? picked.name : label
   const selected = useQuery({
     queryKey: [...source.listKey({}), 'label', value],
-    queryFn: () => source.get(Number(value)),
+    queryFn: () => source.get(parseRecordId(value) ?? value),
     enabled: !!value && !knownName,
   })
   const name =
