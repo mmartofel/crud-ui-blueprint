@@ -42,7 +42,8 @@ section to the version and date and tags the commit `v<version>`.
   - **List:** a command resource has no edit or delete row menu.
   - **Contract checker:** the `contract-auditor` checks command resources (C1-C8), with an eval on the order
     management API's contract.
-  - **The `crud-resource` skill:** builds them.
+  - **The `crud-resource` skill:** builds them, from a third reference example, `orders` (from `order-management-ui`,
+    with its e2e spec), and has an eval case for a command resource.
   - **Opt-in:** existing resources don't change. `ResourceList`'s and `ResourceDetail`'s `remove`/`onDeleted` are
     optional now, because a command resource has none.
 

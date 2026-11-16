@@ -1,0 +1,39 @@
+{
+  "title": "Orders",
+  "newTitle": "New order",
+  "editTitle": "Edit {{name}}",
+  "empty": "No orders yet.",
+  "fields": {
+    "id": "Order",
+    "person": "Customer",
+    "personId": "Customer",
+    "address": "Delivery address",
+    "addressId": "Delivery address",
+    "status": "Status",
+    "total": "Total",
+    "placedAt": "Placed",
+    "cancelReason": "Cancel reason",
+    "updatedAt": "Last changed",
+    "reason": "Reason",
+    "lines": {
+      "itemId": "Item",
+      "quantity": "Quantity",
+      "sku": "SKU",
+      "name": "Item",
+      "unitPrice": "Unit price"
+    }
+  },
+  "groups": {
+    "lines": "Lines"
+  },
+  "filters": {
+    "status": "Status",
+    "personId": "Customer"
+  },
+  "actions": {
+    "cancel": {
+      "label": "Cancel order",
+      "text": "Cancel the order. A completed payment can then be refunded."
+    }
+  }
+}

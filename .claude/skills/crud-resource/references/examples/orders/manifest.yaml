@@ -1,0 +1,64 @@
+# The `resources.orders` entry of ui-manifest.yaml (indentation as in the manifest).
+  orders:
+    kind: commands
+    route: /orders
+    nav:
+      icon: shopping-cart
+      order: 1
+    display: "#{id:8}"       # an order has no name: the first 8 characters of its UUID, as the API labels it
+    permissions:
+      read: [orders-viewer, orders-editor]
+      write: [orders-editor]
+
+    list:
+      defaultSort: placedAt,desc
+      pageSize: 20
+      pageSizes: [10, 20, 50]
+      columns:
+        - { field: placedAt, sortable: true, format: date }
+        - { field: person,   format: relation, resource: persons, mobile: subtitle }
+        - { field: status,   sortable: true, format: badge, enum: OrderStatus, mobile: subtitle,
+            badge: { PLACED: info, PAID: warning, SHIPPED: warning, DELIVERED: success, CANCELLED: secondary } }
+        - { field: total,    sortable: true }
+      filters:
+        - { param: status,   input: select,   enum: OrderStatus }
+        - { param: personId, input: relation, resource: persons }
+
+    detail:
+      fields: [person, address, total, placedAt, cancelReason, updatedAt]
+      status: status
+      lists:
+        - { field: lines, columns: [sku, name, quantity, unitPrice] }
+      related:
+        - { resource: payments,   filter: orderId, limit: 5 }
+        - { resource: deliveries, filter: orderId, limit: 5 }
+
+    form:
+      groups:
+        - [personId, addressId]
+        - list: lines
+          groups:
+            - [itemId, quantity]
+      fields:
+        # from: the embedded reference the detail page shows (and links) for the relation
+        personId:       { input: relation, resource: persons, from: person }
+        # only the addresses of the chosen person; the API rejects another person's address anyway
+        addressId:      { input: relation, resource: addresses, from: address, filter: { personId: personId } }
+        lines.itemId:   { input: relation, resource: items }
+        lines.quantity: { input: number }
+      readOnly: [updatedAt]
+
+    actions:
+      - name: cancel
+        destructive: true
+        form:
+          groups:
+            - [reason]
+          fields:
+            reason: { input: textarea }
+
+    formats:
+      total: number
+      placedAt: dateTime
+      updatedAt: dateTime
+      lines.unitPrice: number

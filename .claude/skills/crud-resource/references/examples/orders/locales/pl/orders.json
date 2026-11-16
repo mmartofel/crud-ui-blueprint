@@ -1,0 +1,39 @@
+{
+  "title": "Zamówienia",
+  "newTitle": "Nowe zamówienie",
+  "editTitle": "Edycja: {{name}}",
+  "empty": "Nie ma jeszcze zamówień.",
+  "fields": {
+    "id": "Zamówienie",
+    "person": "Klient",
+    "personId": "Klient",
+    "address": "Adres dostawy",
+    "addressId": "Adres dostawy",
+    "status": "Status",
+    "total": "Suma",
+    "placedAt": "Złożono",
+    "cancelReason": "Powód anulowania",
+    "updatedAt": "Ostatnia zmiana",
+    "reason": "Powód",
+    "lines": {
+      "itemId": "Pozycja",
+      "quantity": "Ilość",
+      "sku": "SKU",
+      "name": "Pozycja",
+      "unitPrice": "Cena jednostkowa"
+    }
+  },
+  "groups": {
+    "lines": "Pozycje"
+  },
+  "filters": {
+    "status": "Status",
+    "personId": "Klient"
+  },
+  "actions": {
+    "cancel": {
+      "label": "Anuluj zamówienie",
+      "text": "Anuluj zamówienie. Zrealizowaną płatność można wtedy zwrócić."
+    }
+  }
+}

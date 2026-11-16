@@ -278,7 +278,7 @@ expected outcome and checkable expectations per case. They run on the Person API
 
 | Evals | Cases |
 |---|---|
-| `.claude/skills/crud-resource/evals/evals.json` | new resource from a compliant contract (stops at the manifest draft); contract change adding a field; non-compliant contract (stops at Phase A with a prompt for the API repo) |
+| `.claude/skills/crud-resource/evals/evals.json` | new resource from a compliant contract (stops at the manifest draft); contract change adding a field; non-compliant contract (stops at Phase A with a prompt for the API repo); a command resource from the order contract (`openapi-commands.json`) |
 | `.claude/agents/evals/contract-auditor/evals.json` | compliant contract; four violations in persons; a contract change read from `git diff` |
 
 After editing a skill or agent (or `docs/API-CONTRACT.md`, which the auditor reads):
