@@ -11,7 +11,7 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 const deliveries = fixtureResource('deliveries')
 const id = '682c7baf-b7c6-4bec-a728-48bc2d12ee28'
 
-function setup(allowedActions: string[], run: Partial<CommandHandlers['run']> = {}) {
+function setup(allowedActions: string[], run: Partial<CommandHandlers['run']> = {}, disabled = false) {
   const handlers = {
     run: {
       ship: vi.fn(async () => ({ id, version: 1 })),
@@ -31,6 +31,7 @@ function setup(allowedActions: string[], run: Partial<CommandHandlers['run']> = 
       resource={deliveries}
       record={{ id, version: 0, allowedActions }}
       commands={handlers as unknown as CommandHandlers}
+      disabled={disabled}
       {...callbacks}
     />,
   )
@@ -43,6 +44,11 @@ describe('CommandActions', () => {
   it('offers the allowed actions the manifest describes, in manifest order', () => {
     setup(['cancel', 'ship', 'refund'])
     expect(screen.getAllByRole('button').map((button) => button.textContent)).toEqual(['Ship', 'Cancel delivery'])
+  })
+
+  it('disables the actions while the previous command is processing', () => {
+    setup(['cancel', 'ship'], {}, true)
+    for (const button of screen.getAllByRole('button')) expect(button).toBeDisabled()
   })
 
   it('offers nothing to a reader', () => {

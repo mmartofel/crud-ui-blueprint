@@ -184,6 +184,7 @@ function DetailView<T extends AnyRecord>({
                 onSent={onSent}
                 onStale={() => setStaleOpen(true)}
                 onRefresh={refetch}
+                disabled={awaiting.waiting}
               />
             )
           ) : (

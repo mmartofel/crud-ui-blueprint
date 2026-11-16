@@ -25,6 +25,9 @@ export function formatFieldValue(resource: Resource, field: string, value: unkno
   if (format === 'relation') return isReference(value) ? value.label : ''
   if ((format === 'enum' || format === 'badge') && enumName) return tDynamic(t, enumLabelKey(enumName, String(value)))
   if (format === 'country') return countryName(String(value), language)
+  // A reference the manifest does not declare still shows its label, never "[object Object]".
+  if (isReference(value)) return value.label
+  if (typeof value === 'object') return ''
   return String(value)
 }
 

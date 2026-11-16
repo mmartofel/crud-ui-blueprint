@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { fixtureResource } from '@/test/fixtures'
+import { resources } from '@/manifest'
+import { fixtureResource, fixtureResources } from '@/test/fixtures'
 import { DetailSections } from './DetailSections'
 
 const orders = fixtureResource('orders')
@@ -40,5 +41,30 @@ describe('DetailSections', () => {
       </MemoryRouter>,
     )
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+})
+
+describe('DetailSections references', () => {
+  const persons = fixtureResource('persons')
+
+  // The link goes to the related resource's route (getResource).
+  beforeAll(() => {
+    resources.push(...fixtureResources.filter((fixture) => !resources.some((r) => r.key === fixture.key)))
+  })
+
+  it('links a reference that a relation input is filled from, and shows any other reference by its label', () => {
+    const resource = {
+      ...persons,
+      detail: { fields: ['manager', 'mentor'] },
+      form: { ...persons.form, fields: { managerId: { input: 'relation' as const, resource: persons.key, from: 'manager' } } },
+    }
+    render(
+      <MemoryRouter>
+        <DetailSections resource={resource} record={{ manager: { id: 7, label: 'Ola Nowak' }, mentor: { id: 8, label: 'Jan Kos' } }} />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('link', { name: 'Ola Nowak' })).toHaveAttribute('href', `${persons.route}/7`)
+    expect(screen.getByText('Jan Kos')).toBeInTheDocument()
+    expect(screen.queryByText('[object Object]')).not.toBeInTheDocument()
   })
 })
