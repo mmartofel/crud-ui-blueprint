@@ -137,7 +137,10 @@
     "loadingRecords": "Wczytywanie…",
     "unknownRecord": "Nieznany rekord",
     "details": "Szczegóły",
-    "requiredHint": "Pola oznaczone * są wymagane."
+    "requiredHint": "Pola oznaczone * są wymagane.",
+    "addRow": "Dodaj wiersz",
+    "removeRow": "Usuń wiersz {{number}}",
+    "listRow": "Wiersz {{number}}"
   },
   "toast": {
     "created": "Utworzono: {{name}}.",

@@ -174,9 +174,8 @@ contract or UI fix:
 
 ## 11. Command resources (CQRS / Event Sourcing)
 
-> **Status:** the UI, the manifest (`kind: commands`, `actions`) and the `contract-auditor` support command resources.
-> A create body with a list of objects (an order's `lines`) needs list fields in forms, tracked in
-> [#9](https://github.com/mmartofel/crud-ui-blueprint/issues/9).
+> **Status:** the UI, the manifest (`kind: commands`, `actions`) and the `contract-auditor` support command resources,
+> including request bodies with a list of objects (an order's `lines`).
 
 A command resource is changed only through commands, and read from a read model that is updated from events. It
 can be eventually consistent: a read right after a command may still show the old state. CRUD resources and command
