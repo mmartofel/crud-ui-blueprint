@@ -17,7 +17,8 @@ export default defineConfig({
     ? [['list'], ['html', { open: 'never' }], ['junit', { outputFile: 'reports/e2e-junit.xml' }]]
     : 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    // E2E_BASE_URL runs the suite against a deployed UI instead of the dev server (README "Deploy").
+    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:5173',
     trace: 'on-first-retry',
   },
   projects: [
@@ -49,9 +50,11 @@ export default defineConfig({
   ],
   // One baseline per screenshot, without the platform suffix: they are only made in the Docker image.
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: process.env.E2E_BASE_URL
+    ? undefined
+    : {
+        command: 'npm run dev',
+        url: 'http://localhost:5173',
+        reuseExistingServer: !process.env.CI,
+      },
 })

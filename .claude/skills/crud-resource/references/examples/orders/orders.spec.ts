@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { expectAccessible } from './support/a11y.ts'
-import { authFile, openAs } from './support/auth.ts'
+import { appOrigin, authFile, openAs } from './support/auth.ts'
 import { callApi, deleteViaApi, unique } from './support/data.ts'
 
 // The command resources end to end: an order placed in the UI, paid, shipped and delivered through actions, the
@@ -73,7 +73,7 @@ test.beforeEach(() => {
 })
 
 test.afterEach(async ({ page }) => {
-  if (created.length && !page.url().startsWith('http://localhost:5173')) await openAs(page)
+  if (created.length && !page.url().startsWith(appOrigin)) await openAs(page)
   for (const url of created.toReversed()) await deleteViaApi(page, url)
 })
 

@@ -16,6 +16,10 @@ section to the version and date and tags the commit `v<version>`.
 ## [Unreleased]
 
 ### Added
+- The e2e suite runs against a deployed UI: `E2E_BASE_URL` (no dev server then) and `E2E_OIDC_AUTHORITY` (the realm
+  as the browser sees it; a path is taken on the UI's host). `e2e/support/auth.ts` exports `appOrigin` and
+  `isAppPage`, and the example specs use `appOrigin` instead of `localhost:5173`. Projects take over
+  `playwright.config.ts`, `e2e/support/auth.ts` and the `localhost:5173` lines of their specs.
 - `docs/API-CONTRACT.md` section 11, "Command resources": the contract rules for CQRS / Event Sourcing APIs.
   - **Commands:** a create returns 201 and an action returns 202, both with `{id, version}`. There is no `PUT` or `DELETE`.
   - **Read model:** it carries `version`, `status` and `allowedActions`.

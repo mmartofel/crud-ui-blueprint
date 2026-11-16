@@ -11,8 +11,23 @@ function credentials(user: TestUser) {
   return { username, password }
 }
 
+/**
+ * Where the app runs: the dev server by default, or a deployed UI (`E2E_BASE_URL=https://ui.example.com`); the
+ * config's `baseURL` is the same value.
+ */
+export const appOrigin = new URL(process.env.E2E_BASE_URL ?? 'http://localhost:5173').origin
+
+/**
+ * The OIDC realm as the browser sees it: `E2E_OIDC_AUTHORITY`, else `VITE_OIDC_AUTHORITY`. A path (`/realms/orders`,
+ * a realm proxied on the UI's own host) is taken relative to the app.
+ */
+const authority = new URL(process.env.E2E_OIDC_AUTHORITY ?? process.env.VITE_OIDC_AUTHORITY ?? '/\0', appOrigin).href
+
 /** The OIDC provider's login page (Keycloak: `/realms/<realm>/protocol/openid-connect/auth`). */
-export const isLoginPage = (url: URL) => url.href.startsWith(process.env.VITE_OIDC_AUTHORITY ?? '\0')
+export const isLoginPage = (url: URL) => url.href.startsWith(authority)
+
+/** A page of the app after sign-in: not the provider's (which may share the app's host) and not the callback. */
+export const isAppPage = (url: URL) => url.origin === appOrigin && !isLoginPage(url) && !url.searchParams.has('code')
 
 /** Fills the provider's login form (Keycloak's labels, in English or Polish) as `user`. */
 export async function fillLoginForm(page: Page, user: TestUser) {
@@ -27,7 +42,7 @@ export async function loginAs(page: Page, user: TestUser, path = '/') {
   await page.goto(path)
   await page.waitForURL(isLoginPage)
   await fillLoginForm(page, user)
-  await page.waitForURL((url) => url.origin === 'http://localhost:5173' && !url.searchParams.has('code'))
+  await page.waitForURL(isAppPage)
   await expect(page.getByRole('banner')).toBeVisible()
 }
 
@@ -40,7 +55,7 @@ export const authFile = (user: TestUser) => `e2e/.auth/${user}.json`
  */
 export async function openAs(page: Page, path = '/') {
   await page.goto(path)
-  await page.waitForURL((url) => url.origin === 'http://localhost:5173' && !url.searchParams.has('code'))
+  await page.waitForURL(isAppPage)
   // waitForURL can pass before the redirect to the provider starts, so this wait covers the whole round trip
   // (provider redirect, code exchange): slower than the default 5 s under the full parallel suite.
   await expect(page.getByRole('banner')).toBeVisible({ timeout: 15_000 })
