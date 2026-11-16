@@ -59,8 +59,10 @@ export function ResourceList<T extends AnyRecord>({
   const { t } = useTranslation()
   const format = useFormat()
   const roles = useRoles()
-  // A command resource has no edit and no delete: its rows link to the detail page, where its actions are.
-  const writer = canWrite(roles, resource) && !isCommandResource(resource)
+  const writer = canWrite(roles, resource)
+  // A command resource has no edit and no delete: its rows link to the detail page, where its actions are. Writers
+  // still create it ("New").
+  const rowMenu = writer && !isCommandResource(resource)
   const { state, setPage, setSize, setSort, setQuery, setFilter, clearFilters, clampPage } = list
   const toolbarRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -199,7 +201,7 @@ export function ResourceList<T extends AnyRecord>({
               onSortChange={setSort}
               getRowHref={(row) => `${resource.route}/${row.id}`}
               rowActions={
-                writer
+                rowMenu
                   ? (row) => (
                       <RowActions
                         name={formatDisplay(resource.display, row)}

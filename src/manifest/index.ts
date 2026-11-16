@@ -32,6 +32,12 @@ export interface FormFieldManifest {
   from?: string
   /** Another field this one must not be earlier than (error code `date-range`). */
   notBefore?: string
+  /**
+   * `input: relation`: list filters of the related resource taken from other fields of this form, `{ <filter>: <field> }`.
+   * `{ personId: personId }` offers only the addresses of the person picked in `personId`; while that field is empty
+   * the picker lists all records. The API still checks the value.
+   */
+  filter?: Record<string, string>
 }
 
 /** A nested object in the form: a fieldset whose rows name fields relative to the object. */
@@ -273,11 +279,17 @@ export function getPath(record: object, path: string): unknown {
   return path.split('.').reduce<unknown>((value, key) => (value as Record<string, unknown> | null)?.[key], record)
 }
 
-/** Fills a display template such as "{firstName} {lastName}" from a record. */
+/**
+ * Fills a display template such as "{firstName} {lastName}" from a record. `{field:N}` takes the first N characters,
+ * for a record without a name: "#{id:8}" names an order with a UUID id "#682c7baf".
+ */
 export function formatDisplay(template: string, record: object): string {
   const values = record as Record<string, unknown>
   return template
-    .replace(/\{(\w+)\}/g, (_, field: string) => (values[field] == null ? '' : String(values[field])))
+    .replace(/\{(\w+)(?::(\d+))?\}/g, (_, field: string, length?: string) => {
+      const value = values[field] == null ? '' : String(values[field])
+      return length ? value.slice(0, Number(length)) : value
+    })
     .replace(/\s+/g, ' ')
     .trim()
 }

@@ -21,8 +21,19 @@ describe('manifest', () => {
     expect(Array.isArray(resources)).toBe(true)
   })
 
+  it("sorts every list by default by one of its sortable columns", () => {
+    // listState falls back to `defaultSort`: a field that is not a sortable column leaves the list without a sort.
+    for (const resource of [...resources, ...fixtureResources]) {
+      const field = resource.list.defaultSort.split(',')[0]
+      expect(
+        resource.list.columns.some((column) => column.field === field && column.sortable),
+        `${resource.key}: defaultSort ${resource.list.defaultSort}`,
+      ).toBe(true)
+    }
+  })
+
   it('builds resources in nav order', () => {
-    expect(fixtureResources.map((r) => r.key)).toEqual(['persons', 'tasks', 'deliveries', 'orders'])
+    expect(fixtureResources.map((r) => r.key)).toEqual(['fxPersons', 'fxTasks', 'fxDeliveries', 'fxOrders'])
     expect(persons.route).toBe('/persons')
   })
 
@@ -58,12 +69,14 @@ describe('manifest helpers', () => {
     const tasks = fixtureResource('tasks')
     expect(fieldFormat(tasks, 'createdAt')).toEqual({ format: 'dateTime' })
     expect(fieldFormat(tasks, 'estimateHours')).toEqual({ format: 'number' })
-    expect(fieldFormat(tasks, 'assignee')).toMatchObject({ format: 'relation', resource: 'persons' })
+    expect(fieldFormat(tasks, 'assignee')).toMatchObject({ format: 'relation', resource: 'fxPersons' })
   })
 
   it('fills the display template and tolerates missing values', () => {
     expect(formatDisplay(persons.display, { firstName: 'Anna', lastName: 'Nowak' })).toBe('Anna Nowak')
     expect(formatDisplay(persons.display, { lastName: 'Nowak' })).toBe('Nowak')
+    // {field:N}: the first N characters, for a record without a name
+    expect(formatDisplay('#{id:8}', { id: '682c7baf-b7c6-4bec-a728-48bc2d12ee28' })).toBe('#682c7baf')
   })
 
   it('splits the detail fields into main, nested-object and metadata sections without the header status', () => {

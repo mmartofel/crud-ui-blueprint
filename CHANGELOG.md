@@ -54,6 +54,18 @@ section to the version and date and tags the commit `v<version>`.
   - **Detail page:** `detail.lists: [{ field, columns }]` shows a list of objects as a table.
   - **Helpers:** the generic form helpers (`formResolver`, `isRequired`, `numberLimits`) handle lists.
 
+- `display` takes `{field:N}`, the first N characters of a field, for a record without a name: `"#{id:8}"` names an
+  order with a UUID id `#682c7baf`.
+- A relation input's `filter: { <list filter>: <form field> }` lists only the related records that match another
+  field of the same form. `addressId: { input: relation, resource: addresses, filter: { personId: personId } }`
+  offers the addresses of the chosen person.
+
+### Fixed
+- The test fixtures' resource keys carry an `fx` prefix (`fxPersons`, `fxTasks`, `fxDeliveries`, `fxOrders`). A
+  project with a resource of the same name (`persons`, `orders`) made the blueprint's own unit tests fail, because
+  the project's labels and manifest won over the fixtures'. Tests still write `fixtureResource('persons')`; a test
+  that registers a fixture source uses its key (`fxPersons`). Routes and label texts are unchanged.
+
 ### Changed
 - `FormFields` takes `bare` to render its rows without the "Details" card (an action's input in a dialog).
 - `ResourceSource` in `src/api/sources.ts` declares its functions as methods, so a resource's generated functions

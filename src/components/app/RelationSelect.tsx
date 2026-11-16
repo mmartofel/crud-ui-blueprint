@@ -31,6 +31,8 @@ interface RelationSelectProps extends TriggerProps {
   allowEmpty?: boolean
   /** Text for no value (placeholder and the clearing option); defaults to "Choose…" / "— none —". */
   emptyLabel?: string
+  /** Extra list filters of the related resource (`{ personId: 7 }`); undefined values are left out. */
+  filters?: Record<string, unknown>
   ref?: Ref<HTMLButtonElement>
 }
 
@@ -42,6 +44,7 @@ export function RelationSelect({
   label,
   allowEmpty,
   emptyLabel,
+  filters,
   ref,
   className,
   ...trigger
@@ -63,7 +66,7 @@ export function RelationSelect({
     return () => clearTimeout(timer)
   }, [search])
 
-  const params = { q: q || undefined, size: PAGE_SIZE, sort: [related.list.defaultSort] }
+  const params = { ...filters, q: q || undefined, size: PAGE_SIZE, sort: [related.list.defaultSort] }
   const options = useQuery({
     queryKey: source.listKey(params),
     queryFn: () => source.list(params),

@@ -31,6 +31,7 @@ import {
   type FormListGroup,
   type Resource,
 } from '@/manifest'
+import { parseRecordId } from '@/lib/ids'
 
 // Radix Select cannot use '' as an item value; this stands for "no value" in the UI only.
 const NONE = '__none__'
@@ -229,6 +230,18 @@ function FormField<T extends FieldValues, TOut extends FieldValues>({
   const config = resource.form.fields?.[fieldKey] ?? { input: 'text' as const }
   // The earliest allowed date (`notBefore`); the hook needs a name even when the field has no such rule.
   const earliest = useWatch({ control, name: (config.notBefore ?? name) as Path<T> }) as unknown
+  // A relation's list filters from other fields of the form (`filter: { personId: personId }`).
+  const filterEntries = Object.entries(config.filter ?? {})
+  const filterValues = useWatch({
+    control,
+    name: (filterEntries.length ? filterEntries.map(([, field]) => field) : [name]) as Path<T>[],
+  }) as unknown[]
+  const relationFilters = Object.fromEntries(
+    filterEntries.map(([param], i) => {
+      const raw = filterValues[i]
+      return [param, typeof raw === 'string' && raw !== '' ? (parseRecordId(raw) ?? raw) : undefined]
+    }),
+  )
   const invalid = !!fieldState.error
   const a11y = {
     id,
@@ -296,6 +309,7 @@ function FormField<T extends FieldValues, TOut extends FieldValues>({
         onBlur={onBlur}
         label={relationLabel}
         allowEmpty={config.allowEmpty ?? !required}
+        filters={relationFilters}
       />
     )
   } else if (config.input === 'country') {
