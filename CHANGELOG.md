@@ -15,6 +15,13 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-16
+
+Command resources: a UI for CQRS / Event Sourcing APIs (`docs/API-CONTRACT.md` section 11), with list fields in forms
+and UUID record ids. Verified end to end with `order-management-ui` against the Order Management API 2.0.0, locally
+and on OpenShift. MINOR: everything is opt-in, and existing resources need no change. A project's own tests that
+register a fixture source use its `fx` key (Fixed).
+
 ### Added
 - Gallery section "Command resource": a delivery detail with its action buttons and dialogs, an outcome picker for
   the next command (accepted, a slow read model with "Still processing", a stale version, `invalid-state`) and the
@@ -68,22 +75,24 @@ section to the version and date and tags the commit `v<version>`.
   field of the same form. `addressId: { input: relation, resource: addresses, filter: { personId: personId } }`
   offers the addresses of the chosen person.
 
-### Fixed
-- The test fixtures' resource keys carry an `fx` prefix (`fxPersons`, `fxTasks`, `fxDeliveries`, `fxOrders`). A
-  project with a resource of the same name (`persons`, `orders`) made the blueprint's own unit tests fail, because
-  the project's labels and manifest won over the fixtures'. Tests still write `fixtureResource('persons')`; a test
-  that registers a fixture source uses its key (`fxPersons`). Routes and label texts are unchanged.
-
 ### Changed
 - `FormFields` takes `bare` to render its rows without the "Details" card (an action's input in a dialog).
 - `ResourceSource` in `src/api/sources.ts` declares its functions as methods, so a resource's generated functions
   with a `number` or a `string` id both register. Existing registrations don't need to change.
 
 ### Fixed
+- The test fixtures' resource keys carry an `fx` prefix (`fxPersons`, `fxTasks`, `fxDeliveries`, `fxOrders`). A
+  project with a resource of the same name (`persons`, `orders`) made the blueprint's own unit tests fail, because
+  the project's labels and manifest won over the fixtures'. Tests still write `fixtureResource('persons')`; a test
+  that registers a fixture source uses its key (`fxPersons`). Routes and label texts are unchanged.
 - The detail page links a reference that no list column shows (an order's delivery address) when a relation input is
   filled from it (`from: address`); any other embedded reference shows its label, never "[object Object]".
 - A command resource's action buttons are disabled while the previous command is processing: the version shown is
   stale until the read model catches up, so a second command could only fail as a conflict.
+- The gallery registers its fixture resources in front of a project's own, so a fixture route that is also a
+  project route (`/persons`) shows the fixture in the gallery's pages and breadcrumbs.
+- A manifest test checks that every list's `defaultSort` is a sortable column; a default sort on another field broke
+  the list.
 
 ## [2.0.4] - 2026-11-12
 
@@ -344,7 +353,8 @@ The blueprint before the modern look (also tagged `stable-1.0`): manifest-driven
 and English, the `crud-ui-init` and `crud-resource` skills and the API kickstart. Projects created before versioning
 record this version.
 
-[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.4...HEAD
+[Unreleased]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.4...v2.1.0
 [2.0.4]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.3...v2.0.4
 [2.0.3]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/mmartofel/crud-ui-blueprint/compare/v2.0.1...v2.0.2
