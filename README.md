@@ -125,7 +125,7 @@ Keycloak is set up the same way for every API (realm roles `<realm>-viewer` and 
 | `npm run typecheck` | `tsc` without emit (Claude Code runs it and ESLint on the edited file after every TypeScript edit, `.claude/hooks/`) |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
-| `npm run e2e` | Playwright (needs the API and the OIDC provider running, users from `.env.local`) |
+| `npm run e2e` | Playwright (needs the API and the OIDC provider running, users from `.env.local`); `E2E_BASE_URL` runs it against a deployed UI (Deploy) |
 | `npx playwright test --project=gallery` | Only the component gallery tests, with axe (no API, OIDC or `.env.local`) |
 | `npm run test:visual` | Gallery screenshot tests in the Playwright Docker image (see Visual regression) |
 | `npm run test:visual:update` | Regenerate the screenshot baselines in that image |
@@ -229,6 +229,16 @@ skaffold delete -p openshift -n <ns>                             # removes only 
 - **Keycloak.** It must run with `KC_PROXY_HEADERS=xforwarded`, and the UI client must have `rootUrl ${authBaseUrl}`
   and relative redirect URIs, as the kickstart's realm has (`docs/API-CLAUDE.md` "Keycloak"). Then sign-in works on
   whatever host the Route or Ingress gets, with nothing to change in the realm.
+
+- **E2E against a deployment.** `E2E_BASE_URL` points the suite at a deployed UI instead of the dev server (which
+  then does not start), and `E2E_OIDC_AUTHORITY` names the realm as the browser sees it there. Values set in the
+  environment win over `.env.local`:
+  ```bash
+  UI=https://$(oc get route <ui> -n <ns> -o jsonpath='{.spec.host}')
+  E2E_BASE_URL=$UI E2E_OIDC_AUTHORITY=$UI/realms/<realm> \
+    E2E_WRITER_PASSWORD=... E2E_READER_PASSWORD=... npx playwright test --project=desktop --project=mobile
+  ```
+  The specs create test data and delete what they can; records of command resources stay.
 
 CircleCI builds the image on every push (job `image`) but pushes it nowhere, and renders every overlay.
 
