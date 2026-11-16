@@ -15,6 +15,11 @@ section to the version and date and tags the commit `v<version>`.
 
 ## [Unreleased]
 
+### Fixed
+- The `crud-resource` eval `contract-change-new-field` takes the persons entry from the reference example: the
+  fixture manifest's keys carry the `fx` prefix since 2.1.0. The skill now names the out-of-scope tags from the
+  contract and says in a command resource's draft that there is no edit page (found by running the evals).
+
 ## [2.1.0] - 2026-11-16
 
 Command resources: a UI for CQRS / Event Sourcing APIs (`docs/API-CONTRACT.md` section 11), with list fields in forms

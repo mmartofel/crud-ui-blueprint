@@ -23,7 +23,7 @@
     {
       "id": 2,
       "name": "contract-change-new-field",
-      "prompt": "Setup (eval only, run it first in this throwaway worktree): cp src/test/fixtures/contract/openapi.json contract/openapi.json; replace `resources: {}` in ui-manifest.yaml with the `resources:` block of src/test/fixtures/ui-manifest.yaml; mkdir -p src/features && cp -r .claude/skills/crud-resource/references/examples/persons/feature src/features/persons; cp .claude/skills/crud-resource/references/examples/persons/locales/en/persons.json src/locales/en/ && cp .claude/skills/crud-resource/references/examples/persons/locales/pl/persons.json src/locales/pl/; git add -A && git commit -qm 'eval setup: Person API 3.4.2'; then cp src/test/fixtures/contract/openapi-new-field.json contract/openapi.json\n\nThen: the API changed, I pulled the new contract (Person API 3.5.0). Update persons.",
+      "prompt": "Setup (eval only, run it first in this throwaway worktree): cp src/test/fixtures/contract/openapi.json contract/openapi.json; replace `resources: {}` in ui-manifest.yaml with `resources:` followed by the persons entry of .claude/skills/crud-resource/references/examples/persons/manifest.yaml (without its comment line and without the `related` tasks entry, since tasks is not built); mkdir -p src/features && cp -r .claude/skills/crud-resource/references/examples/persons/feature src/features/persons; cp .claude/skills/crud-resource/references/examples/persons/locales/en/persons.json src/locales/en/ && cp .claude/skills/crud-resource/references/examples/persons/locales/pl/persons.json src/locales/pl/; git add -A && git commit -qm 'eval setup: Person API 3.4.2'; then cp src/test/fixtures/contract/openapi-new-field.json contract/openapi.json\n\nThen: the API changed, I pulled the new contract (Person API 3.5.0). Update persons.",
       "expected_output": "The skill audits the new contract, finds one change for Persons (an optional phone field on create, update and response), says other tags are out of scope, drafts where phone goes in the manifest and stops for approval.",
       "files": [
         "src/test/fixtures/contract/openapi.json",
@@ -39,7 +39,7 @@
         "The output says Tasks (other tags) are out of scope or unchanged",
         "The draft says for each of the list, the detail and the form whether phone goes there and where (a reasoned 'no list column' counts)",
         "The output explicitly stops and asks the user to approve the draft",
-        "ui-manifest.yaml and src/ are unchanged after the run (git status shows only contract/openapi.json modified); the absence of src/api/generated/ in the blueprint may be noted but is not a failure"
+        "ui-manifest.yaml, src/features/ and src/locales/ are unchanged after the run (git status shows contract/openapi.json modified and at most a regenerated src/api/generated/, which Phase A's first step allows when the user only pulled the contract)"
       ]
     },
     {
