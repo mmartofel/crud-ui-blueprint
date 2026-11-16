@@ -9,6 +9,7 @@ export const sections = [
   ['controls', 'Buttons and badges'],
   ['list', 'List'],
   ['detail', 'Detail'],
+  ['commands', 'Command resource'],
   ['form', 'Form'],
   ['states', 'States'],
   ['dialogs', 'Confirm dialog and toasts'],

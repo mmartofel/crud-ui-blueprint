@@ -16,6 +16,9 @@ section to the version and date and tags the commit `v<version>`.
 ## [Unreleased]
 
 ### Added
+- Gallery section "Command resource": a delivery detail with its action buttons and dialogs, an outcome picker for
+  the next command (accepted, a slow read model with "Still processing", a stale version, `invalid-state`) and the
+  reader's view, with functional, axe and visual tests.
 - The e2e suite runs against a deployed UI: `E2E_BASE_URL` (no dev server then) and `E2E_OIDC_AUTHORITY` (the realm
   as the browser sees it; a path is taken on the UI's host). `e2e/support/auth.ts` exports `appOrigin` and
   `isAppPage`, and the example specs use `appOrigin` instead of `localhost:5173`. Projects take over

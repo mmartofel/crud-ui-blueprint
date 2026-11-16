@@ -1,4 +1,4 @@
-// Gives the gallery the persons and tasks resources of the test fixtures, as if they were in ui-manifest.yaml and
+// Gives the gallery the persons, tasks and deliveries resources of the test fixtures, as if they were in ui-manifest.yaml and
 // src/api/sources.ts. Imported before any component, because some read the manifest when their module loads.
 import i18n from '@/i18n'
 import { sources } from '@/api/sources'
@@ -25,3 +25,4 @@ i18n.addResourceBundle('pl', 'translation', { common: { roles: { 'person-viewer'
 
 export const personsResource: Resource = fixtureResource('persons')
 export const tasksResource: Resource = fixtureResource('tasks')
+export const deliveriesResource: Resource = fixtureResource('deliveries')

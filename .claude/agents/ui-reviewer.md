@@ -41,7 +41,7 @@ For each changed screen, logged in as the writer user and then as the reader use
 ## Visual quality
 Check each changed screen against `docs/DESIGN.md` and the gallery (`/__gallery`, no login needed) at 375, 768 and
 1440 px, in light and dark (user menu → Theme), once per theme in one language and one role (the matrix above covers
-the rest). Open the gallery section that shows the same component (List, Detail, Form, States, dialogs, shell) next
+the rest). Open the gallery section that shows the same component (List, Detail, Command resource, Form, States, dialogs, shell) next
 to the screen and report every difference from it, unless `docs/DESIGN.md` defines it (e.g. a page `h1` against a
 card title). A screen with no gallery counterpart (home, 403, 404, sign-in error) is compared with `docs/DESIGN.md`
 alone; report the missing gallery section as a "Nice to have" with the case to add.
