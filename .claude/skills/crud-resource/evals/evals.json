@@ -62,6 +62,27 @@
         "The skill does not propose a UI workaround for any violation",
         "No file was changed except contract/openapi.json by the setup"
       ]
+    },
+    {
+      "id": 4,
+      "name": "new-command-resource",
+      "prompt": "Setup (eval only, run it first in this throwaway worktree): cp src/test/fixtures/contract/openapi-commands.json contract/openapi.json\n\nThen: add the deliveries resource (OpenAPI tag Deliveries). I already pulled the contract, no need to pull or regenerate.",
+      "expected_output": "The contract-auditor finds Deliveries compliant as a command resource; the skill drafts a resources.deliveries entry with kind: commands, the three actions of the contract and a create-only form, lists the open decisions and stops for approval without writing code.",
+      "files": [
+        "src/test/fixtures/contract/openapi-commands.json"
+      ],
+      "expectations": [
+        "The contract-auditor agent was run for the Deliveries tag before any manifest draft was shown",
+        "The output reports Deliveries as a compliant command resource",
+        "The manifest draft has kind: commands",
+        "The draft has an actions list with exactly ship, complete and cancel (the path segments of the contract's POST /{id}/<action> operations)",
+        "The ship action's form has trackingNumber and the cancel action's form has reason; complete has no form; no action form lists version",
+        "cancel is marked destructive: true",
+        "The form is the create form only (fields of the create body, no version) and the output says there is no edit page",
+        "The display template uses fields the read model always has (not a field that only exists after an action)",
+        "The output explicitly stops and asks the user to approve the draft",
+        "No file under src/features/ was created and ui-manifest.yaml was not changed"
+      ]
     }
   ]
 }

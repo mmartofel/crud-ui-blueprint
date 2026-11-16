@@ -1,0 +1,9 @@
+{
+  "OrderStatus": {
+    "PLACED": "Złożone",
+    "PAID": "Opłacone",
+    "SHIPPED": "Wysłane",
+    "DELIVERED": "Dostarczone",
+    "CANCELLED": "Anulowane"
+  }
+}

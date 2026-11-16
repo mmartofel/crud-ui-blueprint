@@ -6,7 +6,8 @@ description: Adds one CRUD resource (list, detail, create/edit form, delete) to 
 # crud-resource
 
 Builds or updates one resource the same way as the reference resources in
-[references/examples/](references/examples/README.md) (`persons`: a simple resource, `tasks`: relations).
+[references/examples/](references/examples/README.md) (`persons`: a simple resource, `tasks`: relations,
+`orders`: a command resource).
 Conventions are in `CLAUDE.md`, contract rules in `docs/API-CONTRACT.md`, file-by-file wiring in
 [references/wiring.md](references/wiring.md), lessons in `docs/PATTERNS.md`.
 
@@ -37,11 +38,15 @@ Ask for whichever is missing. Say whether it is a **new** resource or an **exist
 
 ### A command resource
 The tag has `POST /{id}/<action>` operations and no `PUT` or `DELETE` (API-CONTRACT.md section 11; the
-`contract-auditor` says `(command resource)`). Draft it like a CRUD resource, with these differences:
+`contract-auditor` says `(command resource)`). Draft it like a CRUD resource from `references/examples/orders/`,
+with these differences:
 - `kind: commands`; `form` is the create form only (no `:id/edit` route, no edit page).
 - `actions:` one entry per action of the contract, `name` = the path segment. `form` lists the action body's fields
   besides `version` (none: a confirmation only); `destructive: true` for cancel, refund and the like.
-- `display` from fields the read model always has: there is no name to show before the record is read.
+- `display` from fields the read model always has; a record without a name gets a short id (`"#{id:8}"`).
+- References the read model embeds but no list column shows (an order's `address`): name them with `from` on the
+  create form's relation input, so the detail page links them.
+- A relation that depends on another field (an address of the chosen person): `filter: { personId: personId }`.
 - A request body with a list of objects (an order's `lines`) is a `{ list: lines, groups: [[itemId, quantity]] }`
   entry in `form.groups`; the response's list goes into `detail.lists` (`{ field: lines, columns: [...] }`). Labels:
   `fields.lines.<field>` and `groups.lines`.
@@ -55,7 +60,7 @@ The tag has `POST /{id}/<action>` operations and no `PUT` or `DELETE` (API-CONTR
       `common.validation.*`, namespaces in `src/i18n/resources.ts`. Shared `common.*` labels must fit every resource:
       gender-neutral in Polish. Every role in `permissions` has a `common.roles.<role>` label (locales test).
 - [ ] Feature folder `src/features/<key>/`, copied from `references/examples/persons/feature/` (or `tasks/` for a
-      resource with relations) and renamed (wiring.md). The first resource also replaces `ResourceKey = never` and
+      resource with relations, `orders/` for a command resource) and renamed (wiring.md). The first resource also replaces `ResourceKey = never` and
       updates the lines marked `HOME` in `e2e/shell.spec.ts` (`/` now opens it instead of "No resources yet").
 - [ ] Routes spread into `src/router.tsx` before the `*` route.
 - [ ] A `detail.related` entry, or a test, that needs a resource not built yet waits until that resource is built
@@ -77,7 +82,8 @@ The tag has `POST /{id}/<action>` operations and no `PUT` or `DELETE` (API-CONTR
   which waits for the version. `onSaved` only invalidates the lists (there is no record to put into the cache).
 - Routes: list, `new` and `:id`; no `:id/edit`.
 - i18n: `actions.<name>.label` and `.text` for every action (the locales test checks them).
-- E2E: an action, the record reaching its new status, a stale version (two tabs), and an `invalid-state`.
+- E2E from `references/examples/orders/orders.spec.ts`: an action, the record reaching its new status, a stale
+  version, and an `invalid-state`. Test data created through the API is read only after the read model has it.
 
 ## Definition of Done (from CLAUDE.md)
 1. `npm run typecheck`, `npm run lint`, `npm test` and `npm run build` pass.
