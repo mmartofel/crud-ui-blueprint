@@ -39,7 +39,7 @@
         "The output says Tasks (other tags) are out of scope or unchanged",
         "The draft says for each of the list, the detail and the form whether phone goes there and where (a reasoned 'no list column' counts)",
         "The output explicitly stops and asks the user to approve the draft",
-        "ui-manifest.yaml and src/ are unchanged after the run (git status shows only contract/openapi.json modified); the absence of src/api/generated/ in the blueprint may be noted but is not a failure"
+        "ui-manifest.yaml, src/features/ and src/locales/ are unchanged after the run (git status shows contract/openapi.json modified and at most a regenerated src/api/generated/, which Phase A's first step allows when the user only pulled the contract)"
       ]
     },
     {
