@@ -28,7 +28,8 @@ Ask for whichever is missing. Say whether it is a **new** resource or an **exist
 - [ ] **Existing resource:** `git diff contract/openapi.json` (or `git diff <last commit touching it> -- contract/openapi.json`).
       List added, removed and changed fields, enums, defaults, constraints, query params and error codes for the tag
       (also shared schemas such as `FieldError`: a field becoming optional changes generic code). Other tags in the
-      same pull are out of scope; say so.
+      same pull are out of scope: name them (from the contract's operation tags, not from `ui-manifest.yaml`) and
+      say so.
       Draft the manifest changes: where each new field goes (list column and `mobile`, detail, form group, input,
       filter) and which removed fields leave the manifest.
 - [ ] List the decisions the manifest cannot express yet (see PATTERNS.md section 4 "Missing") and how you propose to
@@ -40,7 +41,8 @@ Ask for whichever is missing. Say whether it is a **new** resource or an **exist
 The tag has `POST /{id}/<action>` operations and no `PUT` or `DELETE` (API-CONTRACT.md section 11; the
 `contract-auditor` says `(command resource)`). Draft it like a CRUD resource from `references/examples/orders/`,
 with these differences:
-- `kind: commands`; `form` is the create form only (no `:id/edit` route, no edit page).
+- `kind: commands`; `form` is the create form only (no `:id/edit` route, no edit page). Say so in the draft: the
+  record changes only through its actions.
 - `actions:` one entry per action of the contract, `name` = the path segment. `form` lists the action body's fields
   besides `version` (none: a confirmation only); `destructive: true` for cancel, refund and the like.
 - `display` from fields the read model always has; a record without a name gets a short id (`"#{id:8}"`).
