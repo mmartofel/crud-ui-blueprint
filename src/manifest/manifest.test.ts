@@ -72,6 +72,16 @@ describe('manifest helpers', () => {
     expect(fieldFormat(tasks, 'assignee')).toMatchObject({ format: 'relation', resource: 'fxPersons' })
   })
 
+  it('links a detail-only reference that a relation input is filled from', () => {
+    // an order shows its delivery address, which is no list column: the form's `from` names the reference
+    const withAddress = {
+      ...persons,
+      form: { ...persons.form, fields: { addressId: { input: 'relation' as const, resource: persons.key, from: 'address' } } },
+    }
+    expect(fieldFormat(withAddress, 'address')).toEqual({ format: 'relation', resource: persons.key })
+    expect(fieldFormat(withAddress, 'addressId')).toEqual({ format: 'text' })
+  })
+
   it('fills the display template and tolerates missing values', () => {
     expect(formatDisplay(persons.display, { firstName: 'Anna', lastName: 'Nowak' })).toBe('Anna Nowak')
     expect(formatDisplay(persons.display, { lastName: 'Nowak' })).toBe('Nowak')

@@ -32,13 +32,16 @@ interface CommandActionsProps {
   onSent: (result: CommandResult) => void
   onStale: () => void
   onRefresh: () => void
+  /** The previous command is still on its way to the read model: the record shown is not the one the server has. */
+  disabled?: boolean
 }
 
 /**
  * The detail page's action buttons: the record's `allowedActions` that the manifest describes, in manifest order. The
  * server decides what is allowed (a reader gets none); an action the manifest does not describe is not offered.
+ * While a command is processing they are disabled: the allowed actions and the version shown are about to change.
  */
-export function CommandActions({ resource, record, commands, onSent, onStale, onRefresh }: CommandActionsProps) {
+export function CommandActions({ resource, record, commands, onSent, onStale, onRefresh, disabled }: CommandActionsProps) {
   const { t } = useTranslation()
   const [current, setCurrent] = useState<ActionManifest>()
   const actions = offeredActions(resource, record.allowedActions).filter((action) => commands.run[action.name])
@@ -49,6 +52,8 @@ export function CommandActions({ resource, record, commands, onSent, onStale, on
         <Button
           key={action.name}
           variant={action.destructive ? 'destructive' : 'outline'}
+          // its version is stale until the read model catches up, so the command would only fail as a conflict
+          disabled={disabled}
           onClick={() => setCurrent(action)}
         >
           {tDynamic(t, actionLabelKey(resource.key, action.name))}

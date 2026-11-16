@@ -257,12 +257,18 @@ export interface FieldDisplay {
   resource?: ResourceKey
 }
 
-/** How a field's value is shown: from the list column, else `formats`, else the form input, else plain text. */
+/**
+ * How a field's value is shown: from the list column, else `formats`, else a relation input filled from it (`from`),
+ * else the form input, else plain text.
+ */
 export function fieldFormat(resource: Resource, field: string): FieldDisplay {
   const column = resource.list.columns.find((c) => c.field === field)
   if (column?.format) return { format: column.format, enum: column.enum, badge: column.badge, resource: column.resource }
   const format = resource.formats?.[field]
   if (format) return { format }
+  // An embedded reference that a relation input is filled from (`from: person`) links to its record.
+  const relation = Object.values(resource.form.fields ?? {}).find((f) => f.input === 'relation' && f.from === field)
+  if (relation?.resource) return { format: 'relation', resource: relation.resource }
   const input = resource.form.fields?.[field]
   if (input?.input === 'date') return { format: 'date' }
   if (input?.input === 'number') return { format: 'number' }
