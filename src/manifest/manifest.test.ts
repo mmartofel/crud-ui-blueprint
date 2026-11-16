@@ -21,6 +21,17 @@ describe('manifest', () => {
     expect(Array.isArray(resources)).toBe(true)
   })
 
+  it("sorts every list by default by one of its sortable columns", () => {
+    // listState falls back to `defaultSort`: a field that is not a sortable column leaves the list without a sort.
+    for (const resource of [...resources, ...fixtureResources]) {
+      const field = resource.list.defaultSort.split(',')[0]
+      expect(
+        resource.list.columns.some((column) => column.field === field && column.sortable),
+        `${resource.key}: defaultSort ${resource.list.defaultSort}`,
+      ).toBe(true)
+    }
+  })
+
   it('builds resources in nav order', () => {
     expect(fixtureResources.map((r) => r.key)).toEqual(['fxPersons', 'fxTasks', 'fxDeliveries', 'fxOrders'])
     expect(persons.route).toBe('/persons')
