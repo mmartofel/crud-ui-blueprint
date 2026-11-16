@@ -26,7 +26,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { tDynamic } from '@/i18n/dynamic'
-import { canWrite, formatDisplay, type ResourceKey } from '@/manifest'
+import { canWrite, formatDisplay } from '@/manifest'
 import { CreateTaskBody } from '@/test/fixtures/api/tasks.zod'
 import { UpdatePersonBody } from '@/test/fixtures/api/persons.zod'
 import { persons, removeRecord, tasks } from './data'
@@ -241,7 +241,7 @@ function ListSection() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const list = useListState(personsResource)
-  const source = sourceOf('persons' as ResourceKey)
+  const source = sourceOf(personsResource.key)
   const query = useQuery({
     queryKey: source.listKey(list.apiParams),
     queryFn: () => source.list(list.apiParams),
@@ -259,10 +259,10 @@ function ListSection() {
           query={query}
           filterValues={personFilterValues}
           remove={async (person: AnyRecord) => removeRecord(persons, person.id)}
-          onDeleted={() => void queryClient.invalidateQueries({ queryKey: ['gallery', 'persons'] })}
+          onDeleted={() => void queryClient.invalidateQueries({ queryKey: ['gallery', personsResource.key] })}
         />
       </div>
-      <h3 className="text-sm font-medium">{tDynamic(t, 'tasks.title')}: relations, boolean badges, numbers</h3>
+      <h3 className="text-sm font-medium">{tDynamic(t, `${tasksResource.key}.title`)}: relations, boolean badges, numbers</h3>
       <Card className="gap-0 overflow-hidden py-0">
         <DataTable
           resource={tasksResource}
@@ -360,7 +360,7 @@ function FormSection() {
         </Select>
       </div>
       <div>
-        <PageHeader title={tDynamic(t, 'persons.editTitle', { name: formatDisplay(personsResource.display, person) })} />
+        <PageHeader title={tDynamic(t, `${personsResource.key}.editTitle`, { name: formatDisplay(personsResource.display, person) })} />
         <ResourceForm
           resource={personsResource}
           schema={UpdatePersonForm}
@@ -373,7 +373,7 @@ function FormSection() {
         />
       </div>
       <div>
-        <PageHeader title={tDynamic(t, 'tasks.newTitle')} />
+        <PageHeader title={tDynamic(t, `${tasksResource.key}.newTitle`)} />
         <ResourceForm
           resource={tasksResource}
           schema={CreateTaskBody}
@@ -415,7 +415,7 @@ function StatesSection() {
               isError={false}
               isEmpty
               empty={{
-                title: tDynamic(t, 'persons.empty'),
+                title: tDynamic(t, `${personsResource.key}.empty`),
                 description: t('common.states.emptyText'),
                 action: canWrite(roles, personsResource) && (
                   <Button>

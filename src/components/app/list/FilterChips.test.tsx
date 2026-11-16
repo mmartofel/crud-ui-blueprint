@@ -14,7 +14,7 @@ beforeAll(() => {
   // The relation chip names the related record by its resource's `display` (getResource).
   resources.push(...fixtureResources.filter((fixture) => !resources.some((r) => r.key === fixture.key)))
   Object.assign(sources, {
-    persons: {
+    fxPersons: {
       list: async () => ({ content: [] }),
       get: async (id: number) => ({ id, firstName: 'Anna', lastName: 'Nowak' }),
       listKey: (params: Record<string, unknown>) => ['persons', params],

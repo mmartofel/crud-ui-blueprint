@@ -94,13 +94,21 @@ function DetailList({ resource, record, list }: { resource: Resource; record: ob
   const items = getPath(record, list.field)
   const rows = Array.isArray(items) ? (items as object[]) : []
   const path = (column: string) => `${list.field}.${column}`
+  const title = tDynamic(t, groupLabelKey(resource.key, list.field))
   return (
-    <SectionCard title={tDynamic(t, groupLabelKey(resource.key, list.field))}>
+    <SectionCard title={title}>
       {rows.length === 0 ? (
         <p className="text-muted-foreground italic">{t('common.detail.empty')}</p>
       ) : (
-        <div className="-mx-6 overflow-x-auto">
-          <Table>
+        // The one scroll container of a table wider than the card: focusable and named, so a keyboard user can scroll
+        // it (axe scrollable-region-focusable); the table has no links of its own to take focus.
+        <div
+          role="region"
+          aria-label={title}
+          tabIndex={0}
+          className="-mx-6 overflow-x-auto rounded-sm focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
+        >
+          <Table containerClassName="overflow-visible">
             <TableHeader>
               <TableRow>
                 {list.columns.map((column) => (

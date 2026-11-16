@@ -16,7 +16,7 @@ beforeAll(() => {
   // The picker names records by their resource's `display` (getResource) and lists them through `sources`.
   resources.push(...fixtureResources.filter((fixture) => !resources.some((r) => r.key === fixture.key)))
   Object.assign(sources, {
-    tasks: {
+    fxTasks: {
       list: tasksList,
       get: async (id: number) => ({ id, title: 'Write the report' }),
       listKey: (params: Record<string, unknown>) => ['tasks', params],
@@ -40,7 +40,7 @@ const resource = {
     groups: [['assigneeId'], ['taskId']],
     fields: {
       assigneeId: { input: 'number' },
-      taskId: { input: 'relation', resource: 'tasks', filter: { assigneeId: 'assigneeId' } },
+      taskId: { input: 'relation', resource: 'fxTasks', filter: { assigneeId: 'assigneeId' } },
     },
   },
 } as unknown as Resource

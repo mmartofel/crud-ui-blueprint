@@ -1,9 +1,12 @@
-import { fixtureResources } from '@/test/fixtures'
+import { fixtureKeys, fixtureResources } from '@/test/fixtures'
 import { resourcePage } from './resourcePage'
 
 const page = (path: string) => {
   const result = resourcePage(path, fixtureResources)
-  return result && { key: result.resource.key as string, kind: result.kind, id: result.id }
+  // reported by the fixture's name (`persons`), not its prefixed key
+  if (!result) return result
+  const name = Object.entries(fixtureKeys).find(([, key]) => key === (result.resource.key as string))?.[0]
+  return { key: name, kind: result.kind, id: result.id }
 }
 
 describe('resourcePage', () => {

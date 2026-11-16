@@ -1,7 +1,9 @@
-# Test fixture: the persons and tasks entries of the reference app (Person UI), for unit tests of the generic
-# code. Not loaded by the app.
+# Test fixture: the persons and tasks entries of the reference app (Person UI) and two command resources of the order
+# management API, for unit tests of the generic code. Not loaded by the app. The keys carry an `fx` prefix so they never
+# clash with a project's own resources (a project with a `persons` resource keeps its labels and manifest); routes and
+# label texts are those of the reference apps. Tests name them without the prefix: fixtureResource('persons').
 resources:
-  persons:
+  fxPersons:
     route: /persons
     nav:
       icon: users            # lucide-react icon name
@@ -44,7 +46,7 @@ resources:
       # Records of another resource that point to this one, as a card under the detail: up to `limit` records
       # filtered by `filter=<id>`, and a link to the filtered list. Shown only to users who can read that resource.
       related:
-        - { resource: tasks, filter: assigneeId, limit: 5 }
+        - { resource: fxTasks, filter: assigneeId, limit: 5 }
 
     form:
       # groups are rows of fields shown side by side from the `md` breakpoint; an { object, groups } entry is a
@@ -66,7 +68,7 @@ resources:
         availableTo:   { input: date, notBefore: availableFrom }
         address.countryCode: { input: country }
 
-  tasks:
+  fxTasks:
     route: /tasks
     nav:
       icon: list-checks
@@ -89,11 +91,11 @@ resources:
             badge: { HIGH: destructive, MEDIUM: warning, LOW: outline } }
         - { field: dueDate,  sortable: true, format: date, mobile: subtitle }
         # format: relation shows the embedded reference's label, linked to the related record
-        - { field: assignee, format: relation, resource: persons, mobile: subtitle }
+        - { field: assignee, format: relation, resource: fxPersons, mobile: subtitle }
       filters:
         - { param: done,       input: boolean,  enum: TaskState }
         - { param: priority,   input: select,   enum: Priority }
-        - { param: assigneeId, input: relation, resource: persons }
+        - { param: assigneeId, input: relation, resource: fxPersons }
 
     detail:
       fields: [title, description, priority, done, estimateHours, dueDate, assignee, createdAt, updatedAt]
@@ -113,7 +115,7 @@ resources:
         estimateHours: { input: number }
         dueDate:       { input: date }
         # from: the response field with the embedded reference ({ id, label }) that fills the input when editing
-        assigneeId:    { input: relation, resource: persons, from: assignee, allowEmpty: true }
+        assigneeId:    { input: relation, resource: fxPersons, from: assignee, allowEmpty: true }
         done:          { input: checkbox }
       # server-set fields: shown under the edit form, never editable
       readOnly: [createdAt, updatedAt]
@@ -126,7 +128,7 @@ resources:
 
   # A command resource (docs/API-CONTRACT.md section 11), from the order management API: created once, then changed
   # only through actions. Which actions a record offers comes from its allowedActions.
-  deliveries:
+  fxDeliveries:
     kind: commands
     route: /deliveries
     nav:
@@ -178,7 +180,7 @@ resources:
       updatedAt: dateTime
 
   # A command resource whose create body has a list of objects (lines), from the order management API.
-  orders:
+  fxOrders:
     kind: commands
     route: /orders
     nav:

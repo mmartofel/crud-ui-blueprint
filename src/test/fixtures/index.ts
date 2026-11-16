@@ -18,19 +18,42 @@ import { buildResources, type Resource, type ResourceManifest } from '@/manifest
 
 export type FixtureKey = 'persons' | 'tasks' | 'deliveries' | 'orders'
 
+/**
+ * The fixtures' resource keys: prefixed, so they never clash with a project's own resources of the same name (their
+ * labels and manifests would win). Labels live under these keys (`fxPersons.fields.*`), sources are registered by them.
+ */
+export const fixtureKeys: Record<FixtureKey, string> = {
+  persons: 'fxPersons',
+  tasks: 'fxTasks',
+  deliveries: 'fxDeliveries',
+  orders: 'fxOrders',
+}
+
 export const fixtureResources = buildResources(
   (fixtureManifest as { resources: Record<FixtureKey, ResourceManifest> }).resources,
 )
 
 /** A fixture resource, as `getResource` returns a real one. */
 export function fixtureResource(key: FixtureKey): Resource {
-  const resource = fixtureResources.find((r) => (r.key as string) === key)
+  const resource = fixtureResources.find((r) => (r.key as string) === fixtureKeys[key])
   if (!resource) throw new Error(`Unknown fixture resource: ${key}`)
   return resource
 }
 
-/** Adds the fixture labels (`persons.*`, `tasks.*`, `deliveries.*`, their enums) to i18n; run once from src/test/setup.ts. */
+/** Adds the fixture labels (`fxPersons.*`, `fxTasks.*`, `fxDeliveries.*`, `fxOrders.*`, their enums) to i18n; run once from src/test/setup.ts. */
 export function installFixtureLocales() {
-  i18n.addResourceBundle('en', 'translation', { persons: enPersons, tasks: enTasks, deliveries: enDeliveries, orders: enOrders, enums: enEnums }, true, false)
-  i18n.addResourceBundle('pl', 'translation', { persons: plPersons, tasks: plTasks, deliveries: plDeliveries, orders: plOrders, enums: plEnums }, true, false)
+  i18n.addResourceBundle('en', 'translation', {
+      fxPersons: enPersons,
+      fxTasks: enTasks,
+      fxDeliveries: enDeliveries,
+      fxOrders: enOrders,
+      enums: enEnums,
+    }, true, false)
+  i18n.addResourceBundle('pl', 'translation', {
+      fxPersons: plPersons,
+      fxTasks: plTasks,
+      fxDeliveries: plDeliveries,
+      fxOrders: plOrders,
+      enums: plEnums,
+    }, true, false)
 }
