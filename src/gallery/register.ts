@@ -7,7 +7,9 @@ import { resources, type Resource } from '@/manifest'
 import { fixtureResource, fixtureResources, installFixtureLocales } from '@/test/fixtures'
 import { memorySource, persons, tasks } from './data'
 
-resources.push(...fixtureResources.filter((fixture) => !resources.some((r) => r.key === fixture.key)))
+// In front of a project's own resources: a fixture's route (/persons) may be a project resource's route too, and the
+// gallery's pages and breadcrumbs must resolve to the fixture (resourcePage takes the first match).
+resources.unshift(...fixtureResources.filter((fixture) => !resources.some((r) => r.key === fixture.key)))
 
 Object.assign(sources, {
   fxPersons: memorySource(fixtureResource('persons'), persons),
