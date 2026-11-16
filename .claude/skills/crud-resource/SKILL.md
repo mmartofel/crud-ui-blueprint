@@ -89,7 +89,7 @@ with these differences:
 1. `npm run typecheck`, `npm run lint`, `npm test` and `npm run build` pass.
 2. The changed screens were opened with the Playwright MCP server at 375, 768 and 1440 px, logged in as the writer
    and the reader user (`.env.local`), in every language of `app.languages`, with no console errors.
-   Each screen was compared with its `/__gallery` section (List, Detail, Form, States) at the same widths, in light
+   Each screen was compared with its `/__gallery` section (List, Detail, Command resource, Form, States) at the same widths, in light
    and dark: it must look the same (`docs/DESIGN.md`). A difference is fixed in the generic component, not the feature.
 3. The `ui-reviewer` agent reviewed the change (including its "Visual quality" section) and its findings are fixed or
    listed for the user.

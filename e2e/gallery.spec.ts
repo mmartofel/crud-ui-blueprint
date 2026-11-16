@@ -232,3 +232,83 @@ test('the skip link moves focus to the content without a history entry', async (
   await expect(page.locator('#main')).toBeFocused()
   expect(await page.evaluate(() => [location.hash, history.length])).toEqual(['', entries])
 })
+
+test.describe('the command resource', () => {
+  /** The delivery's status badge in its detail header. */
+  const status = (page: import('@playwright/test').Page) => page.locator('#commands').getByRole('heading', { level: 1 }).locator('..')
+
+  test('an action is accepted, the page waits for the read model, then offers the next action', async ({ page }) => {
+    const errors = await openGallery(page)
+    const commands = page.locator('#commands')
+    await expect(status(page)).toContainText('Scheduled')
+    await expect(commands.getByRole('button', { name: 'Complete', exact: true })).toHaveCount(0)
+
+    await commands.getByRole('button', { name: 'Ship' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Ship' })
+    await dialog.getByRole('button', { name: 'Ship' }).click()
+    await expect(dialog.getByText('This field is required.')).toBeVisible()
+    await dialog.getByLabel('Tracking number').fill('TRACK-1')
+    await dialog.getByRole('button', { name: 'Ship' }).click()
+    await expect(dialog).toBeHidden()
+
+    // Accepted: the record shown is the old one until the read model has the new version; its actions wait too.
+    const notice = commands.getByRole('status').filter({ hasText: 'Processing…' })
+    await expect(notice).toBeVisible()
+    await expect(commands.getByRole('button', { name: 'Ship' })).toBeDisabled()
+    await expect(status(page)).toContainText('Shipped')
+    await expect(notice).toHaveCount(0)
+    await expect(commands.getByText('TRACK-1')).toBeVisible()
+    await expect(commands.getByRole('button', { name: 'Mark delivered' })).toBeEnabled()
+    expect(errors).toEqual([])
+  })
+
+  test('a slow read model shows "Still processing" until it catches up', async ({ page }) => {
+    test.setTimeout(30_000)
+    await openGallery(page)
+    const commands = page.locator('#commands')
+    await page.getByLabel('Next command').click()
+    await page.getByRole('option', { name: /takes 9 s/ }).click()
+
+    await commands.getByRole('button', { name: 'Cancel delivery' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Cancel delivery' })
+    await dialog.getByLabel('Reason').fill('customer moved')
+    await dialog.getByRole('button', { name: 'Cancel delivery' }).click()
+
+    await expect(commands.getByRole('status').filter({ hasText: 'Still processing' })).toBeVisible({ timeout: 8_000 })
+    await expect(status(page)).toContainText('Cancelled', { timeout: 15_000 })
+    await expect(commands.getByRole('status')).toHaveCount(0)
+    await expect(commands.getByRole('button', { name: 'Cancel delivery' })).toHaveCount(0)
+  })
+
+  test('a stale version offers a reload; a state that no longer allows the action is explained', async ({ page }) => {
+    await openGallery(page)
+    const commands = page.locator('#commands')
+    await page.getByLabel('Next command').click()
+    await page.getByRole('option', { name: 'Stale version (409)' }).click()
+    await commands.getByRole('button', { name: 'Ship' }).click()
+    await page.getByRole('dialog', { name: 'Ship' }).getByLabel('Tracking number').fill('TRACK-2')
+    await page.getByRole('dialog', { name: 'Ship' }).getByRole('button', { name: 'Ship' }).click()
+    const stale = page.getByRole('alertdialog', { name: 'This record was changed' })
+    await expect(stale).toBeVisible()
+    await stale.getByRole('button', { name: 'Reload' }).click()
+    await expect(stale).toBeHidden()
+
+    await page.getByLabel('Next command').click()
+    await page.getByRole('option', { name: /invalid-state/ }).click()
+    await commands.getByRole('button', { name: 'Ship' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Ship' })
+    await dialog.getByLabel('Tracking number').fill('TRACK-3')
+    await dialog.getByRole('button', { name: 'Ship' }).click()
+    await expect(dialog.getByText('The current state does not allow this.')).toBeVisible()
+  })
+
+  test('the reader is offered no actions', async ({ page }) => {
+    await openGallery(page)
+    const commands = page.locator('#commands')
+    await expect(commands.getByRole('button', { name: 'Ship' })).toBeVisible()
+    await page.getByLabel('Role').click()
+    await page.getByRole('option', { name: 'Reader (read only)' }).click()
+    await expect(status(page)).toContainText('Scheduled')
+    await expect(commands.getByRole('button', { name: /Ship|Cancel delivery/ })).toHaveCount(0)
+  })
+})

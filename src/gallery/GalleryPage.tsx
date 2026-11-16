@@ -27,10 +27,12 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { tDynamic } from '@/i18n/dynamic'
 import { canWrite, formatDisplay } from '@/manifest'
+import { CancelDeliveryBody, ShipDeliveryBody } from '@/test/fixtures/api/deliveries.zod'
 import { CreateTaskBody } from '@/test/fixtures/api/tasks.zod'
 import { UpdatePersonBody } from '@/test/fixtures/api/persons.zod'
 import { persons, removeRecord, tasks } from './data'
-import { personsResource, tasksResource } from './register'
+import { commandOutcomes, deliveryReadModel, type CommandOutcome } from './commands'
+import { deliveriesResource, personsResource, tasksResource } from './register'
 import { useGalleryRole, type GalleryRole } from './role'
 
 // Gallery chrome (section titles, notes) is a developer tool and stays in English; the components inside it use
@@ -41,6 +43,7 @@ const sections = [
   ['controls', 'Buttons and badges'],
   ['list', 'List'],
   ['detail', 'Detail'],
+  ['commands', 'Command resource'],
   ['form', 'Form'],
   ['states', 'States'],
   ['dialogs', 'Confirm dialog and toasts'],
@@ -57,7 +60,7 @@ export function GalleryPage() {
         <div>
           <h1 className="text-page-title">Component gallery</h1>
           <p className="mt-1 max-w-prose text-sm text-muted-foreground">
-            The generic components with the persons and tasks fixtures, inside the app shell. Theme and
+            The generic components with the persons, tasks and deliveries fixtures, inside the app shell. Theme and
             language: user menu at the bottom of the sidebar. Rules: docs/DESIGN.md.
           </p>
         </div>
@@ -86,6 +89,7 @@ export function GalleryPage() {
       <ControlsSection />
       <ListSection />
       <DetailSection />
+      <CommandsSection />
       <FormSection />
       <StatesSection />
       <DialogsSection />
@@ -302,6 +306,68 @@ function DetailSection() {
       </div>
       <div>
         <GalleryDetail resource={tasksResource} record={tasks[0]} />
+      </div>
+    </Section>
+  )
+}
+
+// The input of each delivery action, without the version the page adds.
+const deliverySchemas = {
+  ship: ShipDeliveryBody.omit({ version: true }),
+  cancel: CancelDeliveryBody.omit({ version: true }),
+}
+
+function CommandsSection() {
+  const { role } = useGalleryRole()
+  const queryClient = useQueryClient()
+  const [outcome, setOutcome] = useState<CommandOutcome>('accepted')
+  // A new key starts the detail afresh after a reset (it forgets the version it was waiting for).
+  const [run, setRun] = useState(0)
+  const queryKey = ['gallery', deliveriesResource.key, deliveryReadModel.id, role]
+  const query = useQuery({ queryKey, queryFn: () => deliveryReadModel.get(role === 'writer') })
+  const actions = Object.fromEntries(
+    ['ship', 'complete', 'cancel'].map((action) => [
+      action,
+      (body: never) => deliveryReadModel.run(action, body, outcome),
+    ]),
+  )
+  const reset = () => {
+    deliveryReadModel.reset()
+    setRun((n) => n + 1)
+    void queryClient.invalidateQueries({ queryKey: ['gallery', deliveriesResource.key] })
+  }
+  return (
+    <Section
+      id="commands"
+      note="A command resource (kind: commands): the header offers the record's allowedActions (none for a reader). A command is accepted at once; the page then reads until the read model reaches its version, with Processing and, after about 5 s, Still processing. Pick what the next command does."
+    >
+      <div className="flex flex-col gap-2 md:flex-row md:items-end">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="gallery-command-outcome">Next command</Label>
+          <Select value={outcome} onValueChange={(value) => setOutcome(value as CommandOutcome)}>
+            <SelectTrigger id="gallery-command-outcome" className="w-full md:w-96">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(commandOutcomes).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button variant="outline" onClick={reset}>
+          Reset the delivery
+        </Button>
+      </div>
+      <div>
+        <ResourceDetail
+          key={run}
+          resource={deliveriesResource}
+          query={query}
+          commands={{ run: actions, schemas: deliverySchemas, onChanged: () => {} }}
+        />
       </div>
     </Section>
   )
