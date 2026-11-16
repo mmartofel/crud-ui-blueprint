@@ -59,6 +59,12 @@ section to the version and date and tags the commit `v<version>`.
 - `ResourceSource` in `src/api/sources.ts` declares its functions as methods, so a resource's generated functions
   with a `number` or a `string` id both register. Existing registrations don't need to change.
 
+### Fixed
+- The detail page links a reference that no list column shows (an order's delivery address) when a relation input is
+  filled from it (`from: address`); any other embedded reference shows its label, never "[object Object]".
+- A command resource's action buttons are disabled while the previous command is processing: the version shown is
+  stale until the read model catches up, so a second command could only fail as a conflict.
+
 ## [2.0.4] - 2026-11-12
 
 Dependency updates. No migration needed.
